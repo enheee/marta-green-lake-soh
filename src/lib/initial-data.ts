@@ -3,7 +3,7 @@ import { Announcement, BillRecord, ComplaintRequest, FinancialReport, SohSetting
 export const initialSettings: SohSettings = {
   sohName: 'Marta Green Lake СӨХ',
   buildingName: 'Marta Green Lake хотхон',
-  address: 'Улаанбаатар хот, Хан-Уул дүүрэг, Марта Грин Лэйк',
+  address: 'Улаанбаатар хот, Сүхбаатар дүүрэг, 9-р хороо, Marta Green Lake хотхон',
   emergencyPhones: [
     { title: 'СӨХ-ийн дарга', name: 'Б.Батболд', phone: '9911-2233' },
     { title: 'Байрны жижүүр', name: '24 цагийн жижүүр', phone: '9922-3344' },

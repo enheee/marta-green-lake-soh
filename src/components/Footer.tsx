@@ -19,7 +19,14 @@ export default function Footer() {
             </p>
             <div className="flex items-center gap-2 text-xs text-slate-400">
               <MapPin className="w-4 h-4 text-sky-400 shrink-0" />
-              <span>Улаанбаатар хот, Хан-Уул дүүрэг, Марта Грин Лэйк хотхон</span>
+              <a
+                href="https://maps.app.goo.gl/wEUdBYZkreUJhD2F8"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:text-sky-400 hover:underline transition-colors flex items-center gap-1"
+              >
+                <span>СБД, 9-р хороо, Marta Green Lake хотхон (Газрын зураг ↗)</span>
+              </a>
             </div>
           </div>
 
