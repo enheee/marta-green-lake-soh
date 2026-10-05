@@ -10,6 +10,9 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
+  QrCode,
+  Key,
+  ShieldAlert,
 } from 'lucide-react';
 import { SohSettings } from '@/lib/types';
 
@@ -203,6 +206,123 @@ export default function AdminSettingsPage() {
                 />
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* QPay Gateway Configuration */}
+        <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+              <QrCode className="w-4 h-4 text-red-600" />
+              QPay төлбөрийн гарцын тохиргоо (API холболт)
+            </h3>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={settings.qpayConfig?.enabled ?? false}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    qpayConfig: {
+                      ...(settings.qpayConfig || { enabled: false }),
+                      enabled: e.target.checked,
+                    },
+                  })
+                }
+                className="w-4 h-4 text-red-600 rounded focus:ring-red-500"
+              />
+              <span className="text-xs font-bold text-slate-700">Идэвхжүүлэх</span>
+            </label>
+          </div>
+
+          <p className="text-xs text-slate-500">
+            QPay (qpay.mn)-тэй мерчантын гэрээ байгуулж авсан албан ёсны API түлхүүрүүдээ оруулна уу. Түлхүүр оруулаагүй үед систем автоматаар туршилтын интерактив горимоор ажиллана.
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                Client ID (Мерчант хэрэглэгчийн нэр)
+              </label>
+              <input
+                type="text"
+                placeholder="Жишээ: MARTA_SOH_USER"
+                value={settings.qpayConfig?.clientId || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    qpayConfig: {
+                      ...(settings.qpayConfig || { enabled: true }),
+                      clientId: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-medium focus:outline-none focus:bg-white focus:border-red-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                Client Secret (Нууц түлхүүр)
+              </label>
+              <input
+                type="password"
+                placeholder="••••••••••••••••"
+                value={settings.qpayConfig?.clientSecret || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    qpayConfig: {
+                      ...(settings.qpayConfig || { enabled: true }),
+                      clientSecret: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-medium focus:outline-none focus:bg-white focus:border-red-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                Invoice Code (Нэхэмжлэхийн код)
+              </label>
+              <input
+                type="text"
+                placeholder="Жишээ: MARTA_SOH_INVOICE"
+                value={settings.qpayConfig?.invoiceCode || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    qpayConfig: {
+                      ...(settings.qpayConfig || { enabled: true }),
+                      invoiceCode: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-medium focus:outline-none focus:bg-white focus:border-red-500"
+              />
+            </div>
+
+            <div>
+              <label className="block text-[11px] font-bold text-slate-600 uppercase mb-1">
+                Merchant ID (Сонголттой)
+              </label>
+              <input
+                type="text"
+                placeholder="Жишээ: MGL-SOH-8493"
+                value={settings.qpayConfig?.merchantId || ''}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    qpayConfig: {
+                      ...(settings.qpayConfig || { enabled: true }),
+                      merchantId: e.target.value,
+                    },
+                  })
+                }
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-medium focus:outline-none focus:bg-white focus:border-red-500"
+              />
+            </div>
           </div>
         </div>
 

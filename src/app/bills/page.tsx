@@ -20,8 +20,11 @@ import {
   FileText,
   Printer,
   Download,
+  ExternalLink,
+  Sparkles,
+  Smartphone,
 } from 'lucide-react';
-import { BillRecord, SohSettings } from '@/lib/types';
+import { BillRecord, SohSettings, QPayInvoiceData } from '@/lib/types';
 
 function BillsContent() {
   const searchParams = useSearchParams();
@@ -46,6 +49,73 @@ function BillsContent() {
   const [receiptSuccess, setReceiptSuccess] = useState(false);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
+  // QPay Modal State
+  const [showQPayModal, setShowQPayModal] = useState(false);
+  const [qpayData, setQpayData] = useState<QPayInvoiceData | null>(null);
+  const [loadingQPay, setLoadingQPay] = useState(false);
+  const [checkingQPay, setCheckingQPay] = useState(false);
+  const [qpaySuccess, setQpaySuccess] = useState(false);
+
+  const handleOpenQPay = async () => {
+    if (!bill) return;
+    setLoadingQPay(true);
+    setShowQPayModal(true);
+    setQpaySuccess(false);
+
+    try {
+      const res = await fetch('/api/qpay/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ billId: bill.id, unitNumber: bill.unitNumber }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setQpayData(data.data);
+      } else {
+        alert(data.error || 'QPay нэхэмжлэх үүсгэхэд алдаа гарлаа');
+        setShowQPayModal(false);
+      }
+    } catch {
+      alert('Сүлжээний алдаа гарлаа');
+      setShowQPayModal(false);
+    } finally {
+      setLoadingQPay(false);
+    }
+  };
+
+  const handleCheckQPay = async (simulate: boolean = false) => {
+    if (!bill || !qpayData) return;
+    setCheckingQPay(true);
+    try {
+      const res = await fetch('/api/qpay/check', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          billId: bill.id,
+          invoiceId: qpayData.invoiceId,
+          simulateSuccess: simulate,
+        }),
+      });
+      const data = await res.json();
+      if (data.paid) {
+        setQpaySuccess(true);
+        if (data.bill) {
+          setBill(data.bill);
+        }
+        setTimeout(() => {
+          setShowQPayModal(false);
+          setQpaySuccess(false);
+        }, 2500);
+      } else if (!simulate) {
+        alert('Төлбөр хараахан төлөгдөөгүй байна. Та банкны аппликейшнээрээ шилжүүлсний дараа дахин шалгана уу.');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setCheckingQPay(false);
+    }
+  };
+
   useEffect(() => {
     fetch('/api/settings')
       .then((res) => res.json())
@@ -58,6 +128,36 @@ function BillsContent() {
       fetchBill(searchedUnit);
     }
   }, [searchedUnit]);
+
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (showQPayModal && qpayData && !qpaySuccess) {
+      interval = setInterval(async () => {
+        try {
+          const res = await fetch('/api/qpay/check', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              billId: bill?.id,
+              invoiceId: qpayData.invoiceId,
+            }),
+          });
+          const data = await res.json();
+          if (data.paid) {
+            setQpaySuccess(true);
+            if (data.bill) setBill(data.bill);
+            setTimeout(() => {
+              setShowQPayModal(false);
+              setQpaySuccess(false);
+            }, 2500);
+          }
+        } catch {
+          // ignore background poll errors
+        }
+      }, 4000);
+    }
+    return () => clearInterval(interval);
+  }, [showQPayModal, qpayData, qpaySuccess, bill]);
 
   const fetchBill = async (unit: string) => {
     setLoading(true);
@@ -262,6 +362,15 @@ function BillsContent() {
                   <p className="text-xs text-slate-500">СӨХ-ийн хураамжийн зардлын зориулалт</p>
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
+                  {bill.status !== 'Төлсөн' && (
+                    <button
+                      onClick={handleOpenQPay}
+                      className="px-4 py-2 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-red-700 hover:from-red-700 hover:to-rose-800 text-white text-xs font-black flex items-center gap-1.5 shadow-md shadow-rose-500/20 transition-all active:scale-95"
+                    >
+                      <QrCode className="w-4 h-4" />
+                      <span>QPay-ээр төлөх</span>
+                    </button>
+                  )}
                   <button
                     onClick={() => setShowInvoiceModal(true)}
                     className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
@@ -573,6 +682,159 @@ function BillsContent() {
           </div>
         </div>
       )}
+      {/* QPay Payment Modal */}
+      {showQPayModal && bill && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 relative shadow-2xl space-y-6 my-8">
+            <button
+              onClick={() => setShowQPayModal(false)}
+              className="absolute top-5 right-5 p-2 bg-slate-100 hover:bg-slate-200 rounded-full text-slate-600 transition"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            {/* QPay Header */}
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+              <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-red-600 to-rose-500 text-white flex items-center justify-center font-black text-lg shadow-md shadow-red-500/30">
+                Q
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-red-50 text-red-700 text-[11px] font-black uppercase tracking-wider">
+                  <Sparkles className="w-3 h-3 text-red-600" />
+                  QPAY ЦАХИМ ТӨЛБӨР
+                </div>
+                <h3 className="font-extrabold text-slate-900 text-lg">
+                  {bill.unitNumber}-р тоот • СӨХ-ийн хураамж
+                </h3>
+              </div>
+            </div>
+
+            {loadingQPay ? (
+              <div className="py-16 text-center space-y-3">
+                <div className="w-10 h-10 border-4 border-red-600 border-t-transparent rounded-full animate-spin mx-auto" />
+                <p className="text-sm font-semibold text-slate-700">QPay нэхэмжлэх үүсгэж байна...</p>
+                <p className="text-xs text-slate-400">Банкуудын холболтыг шалгаж байна</p>
+              </div>
+            ) : qpaySuccess ? (
+              <div className="py-12 text-center space-y-4">
+                <div className="w-20 h-20 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
+                  <CheckCircle2 className="w-12 h-12" />
+                </div>
+                <div>
+                  <h4 className="text-2xl font-black text-slate-900">Төлбөр амжилттай баталгаажлаа!</h4>
+                  <p className="text-sm text-slate-600 mt-1">
+                    СӨХ-ийн төлбөрийн систем дээр төлөгдсөн төлөвт шууд шилжлээ.
+                  </p>
+                </div>
+                <span className="inline-block px-4 py-2 rounded-xl bg-emerald-50 text-emerald-800 text-xs font-mono font-bold">
+                  Дүн: {(bill.totalDue > 0 ? bill.totalDue : bill.amount).toLocaleString()} ₮
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Due Amount Highlight */}
+                <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 flex items-center justify-between">
+                  <div>
+                    <span className="text-xs text-slate-400 block font-semibold">Төлөх дүн:</span>
+                    <span className="text-2xl font-black text-slate-900 font-mono">
+                      {(bill.totalDue > 0 ? bill.totalDue : bill.amount).toLocaleString()} ₮
+                    </span>
+                  </div>
+                  <span className="text-xs font-bold text-slate-600 bg-white px-3 py-1.5 rounded-xl border border-slate-200">
+                    {bill.month}
+                  </span>
+                </div>
+
+                {/* QR Code and Bank Deeplinks */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-center">
+                  {/* QR Image Box */}
+                  <div className="bg-white p-4 rounded-2xl border-2 border-slate-200 shadow-sm text-center space-y-3 flex flex-col items-center">
+                    <div className="relative p-2 bg-white rounded-xl border border-slate-100 shadow-sm">
+                      {qpayData?.qrImage ? (
+                        <img
+                          src={qpayData.qrImage}
+                          alt="QPay QR"
+                          className="w-48 h-48 object-contain rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-48 h-48 bg-slate-100 rounded-lg flex items-center justify-center text-slate-400 text-xs">
+                          QR ачаалж байна...
+                        </div>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-medium leading-tight">
+                      Банкны апп-аараа дээрх QR кодыг уншуулна уу
+                    </p>
+                  </div>
+
+                  {/* Mobile Bank Apps List */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                      <Smartphone className="w-4 h-4 text-slate-500" />
+                      <span>Банкны апп-аар шууд нээх:</span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 max-h-56 overflow-y-auto pr-1">
+                      {qpayData?.urls.map((bank, idx) => (
+                        <a
+                          key={idx}
+                          href={bank.link}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-2 p-2 rounded-xl bg-slate-50 hover:bg-red-50 hover:border-red-200 border border-slate-200/70 transition group text-left"
+                        >
+                          <div className="w-6 h-6 rounded-lg bg-white border border-slate-200 flex items-center justify-center font-bold text-[10px] text-red-600 shrink-0">
+                            {bank.name.slice(0, 2)}
+                          </div>
+                          <span className="text-[11px] font-bold text-slate-800 group-hover:text-red-700 truncate block">
+                            {bank.name}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Polling bar and Action Buttons */}
+                <div className="pt-2 border-t border-slate-100 space-y-3">
+                  <div className="flex items-center justify-between text-xs text-slate-500">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                      Төлбөрийг автоматаар шалгаж байна...
+                    </span>
+                    <button
+                      onClick={() => handleCheckQPay(false)}
+                      disabled={checkingQPay}
+                      className="text-red-600 font-bold hover:underline disabled:opacity-50"
+                    >
+                      {checkingQPay ? 'Шалгаж байна...' : 'Шалгах'}
+                    </button>
+                  </div>
+
+                  {/* Immediate Demo Simulator Button for instant verification */}
+                  <div className="bg-slate-50 border border-dashed border-slate-300 rounded-2xl p-3 flex items-center justify-between gap-3">
+                    <div className="text-left">
+                      <span className="text-[11px] font-bold text-slate-700 block">
+                        Туршилтын горим (Demo):
+                      </span>
+                      <span className="text-[10px] text-slate-400 block">
+                        Бодит гүйлгээ хийлгүйгээр системийн автомат баталгаажуулалтыг турших
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleCheckQPay(true)}
+                      className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold shrink-0 transition"
+                    >
+                      Төлөлтийг батлах
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Official Invoice Modal */}
       {showInvoiceModal && bill && (
         <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">

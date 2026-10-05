@@ -70,6 +70,30 @@ export interface SohSettings {
     accountName: string;
   }[];
   rules: string[];
+  qpayConfig?: QPayConfig;
+}
+
+export interface QPayConfig {
+  enabled: boolean;
+  merchantId?: string;
+  clientId?: string;
+  clientSecret?: string;
+  invoiceCode?: string;
+}
+
+export interface QPayBankDeeplink {
+  name: string;
+  description: string;
+  logo: string;
+  link: string;
+}
+
+export interface QPayInvoiceData {
+  invoiceId: string;
+  qrText: string;
+  qrImage: string;
+  shortUrl: string;
+  urls: QPayBankDeeplink[];
 }
 
 export interface PollOption {
