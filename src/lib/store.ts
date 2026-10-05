@@ -3,8 +3,12 @@ import path from 'path';
 import {
   Announcement,
   BillRecord,
+  CctvRequest,
   ComplaintRequest,
+  DeliveryItem,
+  ExpenseReceipt,
   FinancialReport,
+  MeterReading,
   PaymentReceipt,
   Poll,
   SohSettings,
@@ -27,6 +31,10 @@ interface DatabaseSchema {
   polls: Poll[];
   receipts: PaymentReceipt[];
   vehicles: VehicleRecord[];
+  meters: MeterReading[];
+  deliveries: DeliveryItem[];
+  cctvRequests: CctvRequest[];
+  expenses: ExpenseReceipt[];
 }
 
 const DATA_DIR = path.join(process.cwd(), 'data');
@@ -45,7 +53,7 @@ const initialPolls: Poll[] = [
     ],
     status: 'Идэвхтэй',
     createdAt: '2026-09-10',
-    endDate: '2026-09-25',
+    endDate: '2026-10-25',
     votedUnits: {
       '5': 'opt-1',
       '12': 'opt-1',
@@ -66,7 +74,7 @@ const initialPolls: Poll[] = [
     ],
     status: 'Идэвхтэй',
     createdAt: '2026-09-12',
-    endDate: '2026-09-28',
+    endDate: '2026-10-28',
     votedUnits: {
       '12': 'opt-a',
       '24': 'opt-a',
@@ -141,7 +149,121 @@ const initialReceipts: PaymentReceipt[] = [
     transactionNo: 'TXN-984321',
     note: '9-р сарын төлбөр шилжүүлэв',
     status: 'Хүлээгдэж буй',
-    createdAt: '2026-09-15 11:20',
+    createdAt: '2026-10-01 11:20',
+  },
+];
+
+// Phase 2 Initial Seed Data
+const initialMeters: MeterReading[] = [
+  {
+    id: 'mtr-1',
+    unitNumber: '12',
+    residentName: '12-р тоот',
+    period: '2026 оны 10-р сар',
+    coldWater: 142.5,
+    hotWater: 88.2,
+    electricity: 3420,
+    submittedAt: '2026-10-02 09:15',
+    status: 'Хянагдсан',
+  },
+  {
+    id: 'mtr-2',
+    unitNumber: '24',
+    residentName: '24-р тоот',
+    period: '2026 оны 10-р сар',
+    coldWater: 195.0,
+    hotWater: 112.4,
+    electricity: 4180,
+    submittedAt: '2026-10-03 14:30',
+    status: 'Шинэ',
+  },
+  {
+    id: 'mtr-3',
+    unitNumber: '5',
+    residentName: '5-р тоот',
+    period: '2026 оны 10-р сар',
+    coldWater: 110.2,
+    hotWater: 65.0,
+    electricity: 2890,
+    submittedAt: '2026-10-04 18:00',
+    status: 'Шинэ',
+  },
+];
+
+const initialDeliveries: DeliveryItem[] = [
+  {
+    id: 'dlv-1',
+    code: 'DLV-101',
+    unitNumber: '12',
+    courierCompany: 'Toki Delivery',
+    itemDescription: 'Цэнхэр ууттай жижиг илгээмж (Хувцас)',
+    status: 'Хүлээгдэж буй',
+    arrivedAt: '2026-10-05 15:40',
+  },
+  {
+    id: 'dlv-2',
+    code: 'DLV-102',
+    unitNumber: '35',
+    courierCompany: 'Mongol Post',
+    itemDescription: 'Хайрцагтай илгээмж',
+    status: 'Хүлээгдэж буй',
+    arrivedAt: '2026-10-05 16:10',
+  },
+  {
+    id: 'dlv-3',
+    code: 'DLV-103',
+    unitNumber: '24',
+    courierCompany: 'Shoppy.mn',
+    itemDescription: 'Гутлын хайрцаг',
+    status: 'Хүлээн авсан',
+    arrivedAt: '2026-10-04 11:20',
+    pickedUpAt: '2026-10-04 19:30',
+  },
+];
+
+const initialCctvRequests: CctvRequest[] = [
+  {
+    id: 'cctv-1',
+    code: 'CCTV-101',
+    unitNumber: '14',
+    phone: '9911-0022',
+    date: '2026-10-04',
+    timeRange: '14:00 - 15:30',
+    location: 'Зүүн талын ил зогсоол',
+    reason: 'Машины зүүн хаалгыг үл мэдэгдэх машин шүргээд явсан байх магадлалтай.',
+    status: 'Шалгаж байна',
+    adminNote: 'Жижүүр 3-р камерын бичлэгийг татаж байна.',
+    createdAt: '2026-10-04 17:00',
+  },
+];
+
+const initialExpenses: ExpenseReceipt[] = [
+  {
+    id: 'exp-1',
+    title: '1-р орцны халаалтын паарны хаалт, жийргэвч 4ш',
+    category: 'Цахилгаан, сантехник',
+    amount: 145000,
+    date: '2026-09-28',
+    storeName: '100 айл сантехник',
+    createdAt: '2026-09-28',
+  },
+  {
+    id: 'exp-2',
+    title: 'Гадна талбайн шонгийн LED гэрэл 6ш',
+    category: 'Цахилгаан, сантехник',
+    amount: 210000,
+    date: '2026-09-20',
+    storeName: 'Нарны зам цахилгаан бараа',
+    createdAt: '2026-09-20',
+  },
+  {
+    id: 'exp-3',
+    title: 'Цэвэрлэгээний уусмал, бээлий, шуудай',
+    category: 'Цэвэрлэгээ үйлчилгээ',
+    amount: 85000,
+    date: '2026-09-14',
+    storeName: 'Номин Их Дэлгүүр',
+    createdAt: '2026-09-14',
   },
 ];
 
@@ -160,6 +282,10 @@ function ensureDataFile(): DatabaseSchema {
       polls: initialPolls,
       receipts: initialReceipts,
       vehicles: initialVehicles,
+      meters: initialMeters,
+      deliveries: initialDeliveries,
+      cctvRequests: initialCctvRequests,
+      expenses: initialExpenses,
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), 'utf-8');
     return initialDb;
@@ -182,6 +308,38 @@ function ensureDataFile(): DatabaseSchema {
       parsed.vehicles = initialVehicles;
       dirty = true;
     }
+    if (!parsed.meters) {
+      parsed.meters = initialMeters;
+      dirty = true;
+    }
+    if (!parsed.deliveries) {
+      parsed.deliveries = initialDeliveries;
+      dirty = true;
+    }
+    if (!parsed.cctvRequests) {
+      parsed.cctvRequests = initialCctvRequests;
+      dirty = true;
+    }
+    if (!parsed.expenses) {
+      parsed.expenses = initialExpenses;
+      dirty = true;
+    }
+
+    // Attach sample fee breakdown to bills if missing
+    if (parsed.bills) {
+      parsed.bills.forEach((b) => {
+        if (!b.breakdown) {
+          b.breakdown = {
+            cleaning: 8000,
+            security: 10000,
+            elevator: 5000,
+            management: 3000,
+            waste: 2000,
+          };
+          dirty = true;
+        }
+      });
+    }
 
     const fullDb = parsed as DatabaseSchema;
     if (dirty) {
@@ -199,6 +357,10 @@ function ensureDataFile(): DatabaseSchema {
       polls: initialPolls,
       receipts: initialReceipts,
       vehicles: initialVehicles,
+      meters: initialMeters,
+      deliveries: initialDeliveries,
+      cctvRequests: initialCctvRequests,
+      expenses: initialExpenses,
     };
     fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), 'utf-8');
     return initialDb;
@@ -318,7 +480,8 @@ export function addRequest(item: Omit<ComplaintRequest, 'id' | 'code' | 'created
 export function updateRequestStatus(
   id: string,
   status: ComplaintRequest['status'],
-  adminNote?: string
+  adminNote?: string,
+  assignedTo?: string
 ): ComplaintRequest | null {
   const db = ensureDataFile();
   const idx = db.requests.findIndex((r) => r.id === id);
@@ -326,6 +489,9 @@ export function updateRequestStatus(
   db.requests[idx].status = status;
   if (adminNote !== undefined) {
     db.requests[idx].adminNote = adminNote;
+  }
+  if (assignedTo !== undefined) {
+    db.requests[idx].assignedTo = assignedTo;
   }
   saveData(db);
   return db.requests[idx];
@@ -353,9 +519,7 @@ export function addReport(item: Omit<FinancialReport, 'id' | 'publishedAt'>): Fi
   return newReport;
 }
 
-// ----------------------
-// NEW: Polls
-// ----------------------
+// Polls
 export function getPolls(): Poll[] {
   return ensureDataFile().polls;
 }
@@ -429,9 +593,7 @@ export function deletePoll(pollId: string): boolean {
   return false;
 }
 
-// ----------------------
-// NEW: Payment Receipts
-// ----------------------
+// Payment Receipts
 export function getReceipts(): PaymentReceipt[] {
   return ensureDataFile().receipts;
 }
@@ -471,7 +633,6 @@ export function approveReceipt(receiptId: string): { success: boolean; bill?: Bi
   receipt.status = 'Баталгаажсан';
   receipt.verifiedAt = new Date().toISOString().slice(0, 10);
 
-  // Auto-mark the unit bill as Paid
   const bill = db.bills.find((b) => b.unitNumber === receipt.unitNumber);
   if (bill) {
     bill.status = 'Төлсөн';
@@ -492,9 +653,7 @@ export function rejectReceipt(receiptId: string): boolean {
   return true;
 }
 
-// ----------------------
-// NEW: Vehicles & Parking
-// ----------------------
+// Vehicles & Parking
 export function getVehicles(): VehicleRecord[] {
   return ensureDataFile().vehicles;
 }
@@ -527,6 +686,169 @@ export function deleteVehicle(id: string): boolean {
   const initial = db.vehicles.length;
   db.vehicles = db.vehicles.filter((v) => v.id !== id);
   if (db.vehicles.length !== initial) {
+    saveData(db);
+    return true;
+  }
+  return false;
+}
+
+// ------------------------------------
+// PHASE 2 FUNCTIONS
+// ------------------------------------
+
+// 1. Meters (Тоолуурын заалт)
+export function getMeters(): MeterReading[] {
+  return ensureDataFile().meters;
+}
+
+export function getMetersByUnit(unitNumber: string): MeterReading[] {
+  const db = ensureDataFile();
+  const norm = unitNumber.trim();
+  return db.meters.filter((m) => m.unitNumber === norm);
+}
+
+export function addMeterReading(item: Omit<MeterReading, 'id' | 'submittedAt' | 'status'>): MeterReading {
+  const db = ensureDataFile();
+  const now = new Date();
+  const submittedAt = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+    now.getDate()
+  ).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(
+    now.getMinutes()
+  ).padStart(2, '0')}`;
+
+  const reading: MeterReading = {
+    ...item,
+    id: `mtr-${Date.now()}`,
+    submittedAt,
+    status: 'Шинэ',
+  };
+  db.meters.unshift(reading);
+  saveData(db);
+  return reading;
+}
+
+export function updateMeterStatus(id: string, status: MeterReading['status']): MeterReading | null {
+  const db = ensureDataFile();
+  const idx = db.meters.findIndex((m) => m.id === id);
+  if (idx === -1) return null;
+  db.meters[idx].status = status;
+  saveData(db);
+  return db.meters[idx];
+}
+
+// 2. Deliveries (Жижүүрийн илгээмж)
+export function getDeliveries(): DeliveryItem[] {
+  return ensureDataFile().deliveries;
+}
+
+export function getDeliveriesByUnit(unitNumber: string): DeliveryItem[] {
+  const db = ensureDataFile();
+  const norm = unitNumber.trim();
+  return db.deliveries.filter((d) => d.unitNumber === norm);
+}
+
+export function addDelivery(item: Omit<DeliveryItem, 'id' | 'code' | 'arrivedAt' | 'status'>): DeliveryItem {
+  const db = ensureDataFile();
+  const codeNum = 100 + db.deliveries.length + 1;
+  const now = new Date();
+  const arrivedAt = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+    now.getDate()
+  ).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(
+    now.getMinutes()
+  ).padStart(2, '0')}`;
+
+  const delivery: DeliveryItem = {
+    ...item,
+    id: `dlv-${Date.now()}`,
+    code: `DLV-${codeNum}`,
+    arrivedAt,
+    status: 'Хүлээгдэж буй',
+  };
+  db.deliveries.unshift(delivery);
+  saveData(db);
+  return delivery;
+}
+
+export function markDeliveryPickedUp(id: string): DeliveryItem | null {
+  const db = ensureDataFile();
+  const idx = db.deliveries.findIndex((d) => d.id === id);
+  if (idx === -1) return null;
+
+  const now = new Date();
+  const pickedUpAt = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+    now.getDate()
+  ).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(
+    now.getMinutes()
+  ).padStart(2, '0')}`;
+
+  db.deliveries[idx].status = 'Хүлээн авсан';
+  db.deliveries[idx].pickedUpAt = pickedUpAt;
+  saveData(db);
+  return db.deliveries[idx];
+}
+
+// 3. CCTV Requests
+export function getCctvRequests(): CctvRequest[] {
+  return ensureDataFile().cctvRequests;
+}
+
+export function addCctvRequest(item: Omit<CctvRequest, 'id' | 'code' | 'status' | 'createdAt'>): CctvRequest {
+  const db = ensureDataFile();
+  const codeNum = 100 + db.cctvRequests.length + 1;
+  const now = new Date();
+  const createdAt = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(
+    now.getDate()
+  ).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(
+    now.getMinutes()
+  ).padStart(2, '0')}`;
+
+  const req: CctvRequest = {
+    ...item,
+    id: `cctv-${Date.now()}`,
+    code: `CCTV-${codeNum}`,
+    status: 'Хүлээгдэж буй',
+    createdAt,
+  };
+  db.cctvRequests.unshift(req);
+  saveData(db);
+  return req;
+}
+
+export function updateCctvStatus(id: string, status: CctvRequest['status'], adminNote?: string): CctvRequest | null {
+  const db = ensureDataFile();
+  const idx = db.cctvRequests.findIndex((c) => c.id === id);
+  if (idx === -1) return null;
+
+  db.cctvRequests[idx].status = status;
+  if (adminNote !== undefined) {
+    db.cctvRequests[idx].adminNote = adminNote;
+  }
+  saveData(db);
+  return db.cctvRequests[idx];
+}
+
+// 4. Expenses (Шилэн СӨХ Чекийн архив)
+export function getExpenses(): ExpenseReceipt[] {
+  return ensureDataFile().expenses;
+}
+
+export function addExpense(item: Omit<ExpenseReceipt, 'id' | 'createdAt'>): ExpenseReceipt {
+  const db = ensureDataFile();
+  const expense: ExpenseReceipt = {
+    ...item,
+    id: `exp-${Date.now()}`,
+    createdAt: new Date().toISOString().slice(0, 10),
+  };
+  db.expenses.unshift(expense);
+  saveData(db);
+  return expense;
+}
+
+export function deleteExpense(id: string): boolean {
+  const db = ensureDataFile();
+  const initial = db.expenses.length;
+  db.expenses = db.expenses.filter((e) => e.id !== id);
+  if (db.expenses.length !== initial) {
     saveData(db);
     return true;
   }

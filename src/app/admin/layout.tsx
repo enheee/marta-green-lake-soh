@@ -17,6 +17,9 @@ import {
   CheckCircle2,
   Vote,
   Car,
+  Gauge,
+  Package,
+  Video,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -108,6 +111,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const adminNav = [
     { name: 'Хяналтын самбар', href: '/admin', icon: LayoutDashboard },
     { name: 'Төлбөр & Баримт', href: '/admin/bills', icon: CreditCard },
+    { name: 'Тоолуурын заалт', href: '/admin/meters', icon: Gauge },
+    { name: 'Жижүүрийн илгээмж', href: '/admin/deliveries', icon: Package },
+    { name: 'Камерын бичлэг', href: '/admin/cctv', icon: Video },
     { name: 'Санал асуулга', href: '/admin/polls', icon: Vote },
     { name: 'Автомашин & Зогсоол', href: '/admin/parking', icon: Car },
     { name: 'Зарлал удирдах', href: '/admin/announcements', icon: Bell },

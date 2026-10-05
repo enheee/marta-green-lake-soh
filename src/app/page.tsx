@@ -20,6 +20,10 @@ import {
   Sparkles,
   Vote,
   Car,
+  Gauge,
+  Package,
+  Video,
+  Receipt,
 } from 'lucide-react';
 import { Announcement, SohSettings } from '@/lib/types';
 
@@ -145,7 +149,7 @@ export default function HomePage() {
           </div>
         )}
 
-        {/* 6 Feature Quick Cards */}
+        {/* Smart Features Quick Cards Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <Link
             href="/bills"
@@ -155,10 +159,10 @@ export default function HomePage() {
               <CreditCard className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-slate-900 group-hover:text-sky-600 transition-colors">
-              Төлбөр шалгах
+              Төлбөр шалгах & Нэхэмжлэх
             </h3>
             <p className="text-slate-500 text-xs mt-1 leading-relaxed">
-              Тоотоо оруулан СӨХ-ийн сарын төлбөр, үлдэгдлээ шалгаж төлнө үү.
+              Тоотоо оруулан СӨХ-ийн хураамж, үлдэгдлээ шалгаж албан ёсны нэхэмжлэх татах.
             </p>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-sky-600 mt-4">
               Шалгах <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -166,20 +170,56 @@ export default function HomePage() {
           </Link>
 
           <Link
-            href="/polls"
+            href="/meters"
             className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all"
           >
             <div className="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-indigo-600 group-hover:text-white transition-all">
-              <Vote className="w-6 h-6" />
+              <Gauge className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-              Цахим санал асуулга
+              Тоолуурын заалт илгээх
             </h3>
             <p className="text-slate-500 text-xs mt-1 leading-relaxed">
-              Хотхоны засвар тохижилт, дүрэм, төсөвт өөрийн саналаа өгөх.
+              Хүйтэн, халуун ус болон цахилгааны заалтаа фото зурагтай нь сар бүр цахимаар илгээх.
             </p>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 mt-4">
-              Санал өгөх <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              Заалт оруулах <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+
+          <Link
+            href="/deliveries"
+            className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-amber-300 transition-all"
+          >
+            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all">
+              <Package className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-900 group-hover:text-amber-600 transition-colors">
+              Жижүүрийн илгээмж
+            </h3>
+            <p className="text-slate-500 text-xs mt-1 leading-relaxed">
+              Монгол шуудан, хүргэлтийн газруудаас жижүүрт үлдээсэн илгээмжээ тоотоороо шалгах.
+            </p>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 mt-4">
+              Илгээмж харах <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+
+          <Link
+            href="/cctv"
+            className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-rose-300 transition-all"
+          >
+            <div className="w-12 h-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition-all">
+              <Video className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-900 group-hover:text-rose-600 transition-colors">
+              Камерын бичлэг шүүх
+            </h3>
+            <p className="text-slate-500 text-xs mt-1 leading-relaxed">
+              Эд хөрөнгө, аюулгүй байдлын асуудлаар камерын бичлэг шүүх цахим хүсэлт гаргах.
+            </p>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 mt-4">
+              Хүсэлт гаргах <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </span>
           </Link>
 
@@ -191,67 +231,85 @@ export default function HomePage() {
               <Car className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-slate-900 group-hover:text-cyan-600 transition-colors">
-              Зогсоол & Автомашин
+              Зогсоол & Зочны машин
             </h3>
             <p className="text-slate-500 text-xs mt-1 leading-relaxed">
-              Улсын дугаараар эзнийг хайх, гарц хаасан зөрчилд холбогдох.
+              Улсын дугаараар эзнийг хайх болон зочны автомашиныг түр хугацаагаар бүртгэх.
             </p>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-cyan-600 mt-4">
-              Хайх <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              Хайх / Бүртгэх <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+
+          <Link
+            href="/reports"
+            className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all"
+          >
+            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+              <Receipt className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
+              Шилэн СӨХ: Зарлагын чек
+            </h3>
+            <p className="text-slate-500 text-xs mt-1 leading-relaxed">
+              СӨХ-ийн сангийн орлого зарцуулалт, худалдан авалтын баримт чекийн нээлттэй архив.
+            </p>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 mt-4">
+              Архив үзэх <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </span>
+          </Link>
+
+          <Link
+            href="/polls"
+            className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-purple-300 transition-all"
+          >
+            <div className="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-purple-600 group-hover:text-white transition-all">
+              <Vote className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-slate-900 group-hover:text-purple-600 transition-colors">
+              Цахим санал асуулга
+            </h3>
+            <p className="text-slate-500 text-xs mt-1 leading-relaxed">
+              Хотхоны засвар тохижилт, дүрэм журам, төсвийн шийдвэрт өөрийн саналаа өгөх.
+            </p>
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-purple-600 mt-4">
+              Санал өгөх <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </span>
           </Link>
 
           <Link
             href="/requests"
-            className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-amber-300 transition-all"
+            className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-blue-300 transition-all"
           >
-            <div className="w-12 h-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-amber-600 group-hover:text-white transition-all">
+            <div className="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all">
               <Wrench className="w-6 h-6" />
             </div>
-            <h3 className="font-bold text-slate-900 group-hover:text-amber-600 transition-colors">
+            <h3 className="font-bold text-slate-900 group-hover:text-blue-600 transition-colors">
               Гэмтэл, дуудлага өгөх
             </h3>
             <p className="text-slate-500 text-xs mt-1 leading-relaxed">
-              Сантехник, цахилгаан, нийтийн эзэмшлийн эвдрэл гэмтлийг мэдэгдэх.
+              Сантехник, цахилгаан, лифт, нийтийн эзэмшлийн эвдрэл гэмтлийн дуудлага илгээх.
             </p>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-amber-600 mt-4">
+            <span className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 mt-4">
               Илгээх <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </span>
           </Link>
 
           <Link
             href="/announcements"
-            className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-emerald-300 transition-all"
-          >
-            <div className="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all">
-              <Bell className="w-6 h-6" />
-            </div>
-            <h3 className="font-bold text-slate-900 group-hover:text-emerald-600 transition-colors">
-              Зарлал, мэдээлэл
-            </h3>
-            <p className="text-slate-500 text-xs mt-1 leading-relaxed">
-              Хурал цуглаан, цэвэрлэгээ, засварын албан ёсны заруудыг харах.
-            </p>
-            <span className="inline-flex items-center gap-1 text-xs font-semibold text-emerald-600 mt-4">
-              Харах <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
-            </span>
-          </Link>
-
-          <Link
-            href="/reports"
             className="group bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-md hover:border-teal-300 transition-all"
           >
             <div className="w-12 h-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-teal-600 group-hover:text-white transition-all">
-              <FileCheck2 className="w-6 h-6" />
+              <Bell className="w-6 h-6" />
             </div>
             <h3 className="font-bold text-slate-900 group-hover:text-teal-600 transition-colors">
-              Санхүүгийн тайлан
+              Зарлал, мэдээлэл
             </h3>
             <p className="text-slate-500 text-xs mt-1 leading-relaxed">
-              СӨХ-ийн сар бүрийн орлого, зарлагын ил тод тайланг харах.
+              Усны хязгаарлалт, халдваргүйжүүлэлт, СӨХ-ийн шуурхай мэдэгдлүүдийг харах.
             </p>
             <span className="inline-flex items-center gap-1 text-xs font-semibold text-teal-600 mt-4">
-              Нээх <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+              Харах <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </span>
           </Link>
         </div>

@@ -22,6 +22,8 @@ export default function ParkingPage() {
 
   // Register vehicle form
   const [showRegister, setShowRegister] = useState(false);
+  const [isGuestVehicle, setIsGuestVehicle] = useState(false);
+  const [guestDuration, setGuestDuration] = useState('2 цаг');
   const [plateNumber, setPlateNumber] = useState('');
   const [unitNumber, setUnitNumber] = useState('');
   const [carModel, setCarModel] = useState('');
@@ -62,6 +64,14 @@ export default function ParkingPage() {
     setRegistering(true);
     setRegisteredSuccess(false);
 
+    const formattedModel = isGuestVehicle
+      ? `${carModel || 'Зочны машин'} [Зочин - ${guestDuration}]`
+      : carModel || 'Тодорхойгүй';
+
+    const formattedOwner = isGuestVehicle
+      ? `${ownerName || 'Зочин'} (${unitNumber}-р тоотод ирсэн)`
+      : ownerName || `${unitNumber}-р тоот`;
+
     try {
       const res = await fetch('/api/vehicles', {
         method: 'POST',
@@ -69,8 +79,8 @@ export default function ParkingPage() {
         body: JSON.stringify({
           plateNumber,
           unitNumber,
-          carModel,
-          ownerName,
+          carModel: formattedModel,
+          ownerName: formattedOwner,
           ownerPhone,
         }),
       });
@@ -154,18 +164,66 @@ export default function ParkingPage() {
       {/* Register Form Accordion */}
       {showRegister && (
         <div className="bg-slate-50 rounded-3xl border border-slate-200 p-6 sm:p-8 max-w-2xl mx-auto space-y-5">
-          <div className="flex items-center gap-2">
-            <Car className="w-5 h-5 text-sky-600" />
-            <h3 className="font-bold text-base text-slate-900">Шинэ автомашин бүртгүүлэх</h3>
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <Car className="w-5 h-5 text-sky-600" />
+              <h3 className="font-bold text-base text-slate-900">
+                {isGuestVehicle ? 'Зочны автомашин түр бүртгэх' : 'Байнгын автомашин бүртгүүлэх'}
+              </h3>
+            </div>
+
+            {/* Mode switch */}
+            <div className="flex bg-slate-200/80 p-1 rounded-xl text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setIsGuestVehicle(false)}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  !isGuestVehicle ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600'
+                }`}
+              >
+                Оршин суугч
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsGuestVehicle(true)}
+                className={`px-3 py-1.5 rounded-lg transition ${
+                  isGuestVehicle ? 'bg-amber-500 text-slate-950 shadow-sm' : 'text-slate-600'
+                }`}
+              >
+                Зочны түр бүртгэл
+              </button>
+            </div>
           </div>
 
           {registeredSuccess ? (
             <div className="bg-emerald-50 text-emerald-800 p-4 rounded-2xl flex items-center gap-2 border border-emerald-200 text-sm font-bold">
               <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              Таны автомашин амжилттай бүртгэгдлээ!
+              {isGuestVehicle ? 'Зочны автомашин түр хугацаагаар бүртгэгдлээ!' : 'Таны автомашин амжилттай бүртгэгдлээ!'}
             </div>
           ) : (
             <form onSubmit={handleRegister} className="space-y-4">
+              {isGuestVehicle && (
+                <div className="bg-amber-50 border border-amber-200 p-3.5 rounded-2xl text-xs text-amber-900 space-y-2">
+                  <div className="font-bold">Зогсох баримжаа хугацаа:</div>
+                  <div className="flex flex-wrap gap-2">
+                    {['1-2 цаг', '4 цаг хүртэл', 'Өнөөдөр орой хүртэл', 'Маргааш өглөө хүртэл', '24 цаг'].map((dur) => (
+                      <button
+                        key={dur}
+                        type="button"
+                        onClick={() => setGuestDuration(dur)}
+                        className={`px-2.5 py-1 rounded-lg text-xs font-bold transition ${
+                          guestDuration === dur
+                            ? 'bg-amber-600 text-white'
+                            : 'bg-white text-slate-700 border border-amber-200 hover:bg-amber-100'
+                        }`}
+                      >
+                        {dur}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
@@ -182,12 +240,12 @@ export default function ParkingPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Таны тоот *
+                    {isGuestVehicle ? 'Хүрэлцэн ирсэн айлын тоот *' : 'Таны тоот *'}
                   </label>
                   <input
                     type="text"
                     required
-                    placeholder="Жишээ: 12"
+                    placeholder="Жишээ: 402, 12"
                     value={unitNumber}
                     onChange={(e) => setUnitNumber(e.target.value)}
                     className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-bold focus:border-sky-500 focus:outline-none"
@@ -210,7 +268,7 @@ export default function ParkingPage() {
                 </div>
                 <div>
                   <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                    Холбоо барих утас *
+                    Жолоочийн утасны дугаар *
                   </label>
                   <input
                     type="tel"
@@ -225,11 +283,11 @@ export default function ParkingPage() {
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-                  Эзэмшигчийн нэр
+                  {isGuestVehicle ? 'Жолоочийн нэр / Зорилго' : 'Эзэмшигчийн нэр'}
                 </label>
                 <input
                   type="text"
-                  placeholder="Жишээ: Б.Батболд"
+                  placeholder={isGuestVehicle ? 'Жишээ: Зочин (Хүргэлт / Айлчлал)' : 'Жишээ: Б.Батболд'}
                   value={ownerName}
                   onChange={(e) => setOwnerName(e.target.value)}
                   className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-medium focus:border-sky-500 focus:outline-none"
@@ -239,9 +297,17 @@ export default function ParkingPage() {
               <button
                 type="submit"
                 disabled={registering}
-                className="w-full py-2.5 px-4 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-sm transition-all"
+                className={`w-full py-2.5 px-4 rounded-xl font-bold text-xs shadow-sm transition-all ${
+                  isGuestVehicle
+                    ? 'bg-amber-500 hover:bg-amber-600 text-slate-950 font-black'
+                    : 'bg-slate-900 hover:bg-slate-800 text-white'
+                }`}
               >
-                {registering ? 'Бүртгэж байна...' : 'Автомашин бүртгүүлэх'}
+                {registering
+                  ? 'Бүртгэж байна...'
+                  : isGuestVehicle
+                  ? 'Зочны автомашин түр бүртгэх'
+                  : 'Автомашин бүртгүүлэх'}
               </button>
             </form>
           )}
@@ -268,9 +334,16 @@ export default function ParkingPage() {
                 className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4 hover:border-sky-300 transition-all"
               >
                 <div className="flex items-center justify-between">
-                  <span className="font-mono text-base font-black px-3 py-1 rounded-xl bg-slate-900 text-white tracking-widest border border-slate-800 shadow-sm">
-                    {veh.plateNumber}
-                  </span>
+                  <div className="flex items-center gap-2">
+                    <span className="font-mono text-base font-black px-3 py-1 rounded-xl bg-slate-900 text-white tracking-widest border border-slate-800 shadow-sm">
+                      {veh.plateNumber}
+                    </span>
+                    {veh.carModel.includes('[Зочин') && (
+                      <span className="text-[10px] font-black px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 border border-amber-300 uppercase">
+                        Түр зочин
+                      </span>
+                    )}
+                  </div>
                   <span className="inline-flex items-center gap-1 text-xs font-bold text-sky-700 bg-sky-50 px-2.5 py-1 rounded-lg border border-sky-200">
                     <Building className="w-3.5 h-3.5" />
                     {veh.unitNumber}-р тоот

@@ -17,6 +17,9 @@ import {
   Image as ImageIcon,
   X,
   FileCheck,
+  FileText,
+  Printer,
+  Download,
 } from 'lucide-react';
 import { BillRecord, SohSettings } from '@/lib/types';
 
@@ -41,6 +44,7 @@ function BillsContent() {
   const [receiptImage, setReceiptImage] = useState<string | null>(null);
   const [submittingReceipt, setSubmittingReceipt] = useState(false);
   const [receiptSuccess, setReceiptSuccess] = useState(false);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
 
   useEffect(() => {
     fetch('/api/settings')
@@ -253,14 +257,26 @@ function BillsContent() {
             {/* Breakdown Table */}
             <div className="p-6 sm:p-8 space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <h3 className="font-bold text-slate-900 text-base">Төлбөрийн задаргаа</h3>
-                <button
-                  onClick={() => setShowReceiptModal(true)}
-                  className="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 self-start sm:self-auto shadow-sm transition-all"
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Төлбөрийн баримт илгээх</span>
-                </button>
+                <div>
+                  <h3 className="font-bold text-slate-900 text-base">Төлбөрийн задгай бүтэц</h3>
+                  <p className="text-xs text-slate-500">СӨХ-ийн хураамжийн зардлын зориулалт</p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    onClick={() => setShowInvoiceModal(true)}
+                    className="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                    <span>Нэхэмжлэх татах / хэвлэх</span>
+                  </button>
+                  <button
+                    onClick={() => setShowReceiptModal(true)}
+                    className="px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Төлбөрийн баримт илгээх</span>
+                  </button>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -285,6 +301,45 @@ function BillsContent() {
                   <span className="text-lg font-black text-sky-800 mt-1 block">
                     {bill.totalDue.toLocaleString()} ₮
                   </span>
+                </div>
+              </div>
+
+              {/* Itemized Service Breakdown */}
+              <div className="bg-slate-50/70 rounded-2xl p-4 border border-slate-200/80">
+                <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider mb-3">
+                  Сарын төлбөрийн задгай хуваарилалт
+                </h4>
+                <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
+                  <div className="bg-white p-3 rounded-xl border border-slate-200/60">
+                    <span className="text-slate-400 block text-[11px]">Цэвэрлэгээ, ариутгал</span>
+                    <span className="font-bold text-slate-800 mt-0.5 block">
+                      {(bill.breakdown?.cleaning ?? Math.round(bill.amount * 0.28)).toLocaleString()} ₮
+                    </span>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-200/60">
+                    <span className="text-slate-400 block text-[11px]">Харуул хамгаалалт</span>
+                    <span className="font-bold text-slate-800 mt-0.5 block">
+                      {(bill.breakdown?.security ?? Math.round(bill.amount * 0.35)).toLocaleString()} ₮
+                    </span>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-200/60">
+                    <span className="text-slate-400 block text-[11px]">Цахилгаан шат (Лифт)</span>
+                    <span className="font-bold text-slate-800 mt-0.5 block">
+                      {(bill.breakdown?.elevator ?? Math.round(bill.amount * 0.16)).toLocaleString()} ₮
+                    </span>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-200/60">
+                    <span className="text-slate-400 block text-[11px]">Хог хаягдал зайлуулах</span>
+                    <span className="font-bold text-slate-800 mt-0.5 block">
+                      {(bill.breakdown?.waste ?? Math.round(bill.amount * 0.08)).toLocaleString()} ₮
+                    </span>
+                  </div>
+                  <div className="bg-white p-3 rounded-xl border border-slate-200/60">
+                    <span className="text-slate-400 block text-[11px]">Захиргаа & Засвар</span>
+                    <span className="font-bold text-slate-800 mt-0.5 block">
+                      {(bill.breakdown?.management ?? Math.round(bill.amount * 0.13)).toLocaleString()} ₮
+                    </span>
+                  </div>
                 </div>
               </div>
 
@@ -515,6 +570,198 @@ function BillsContent() {
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+      {/* Official Invoice Modal */}
+      {showInvoiceModal && bill && (
+        <div className="fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 relative shadow-2xl space-y-6 my-8 print:p-0 print:shadow-none print:max-w-none">
+            {/* Modal Controls (Hidden when printing) */}
+            <div className="flex items-center justify-between pb-4 border-b border-slate-100 print:hidden">
+              <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                Албан ёсны цахим нэхэмжлэх
+              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => window.print()}
+                  className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition shadow-sm"
+                >
+                  <Printer className="w-3.5 h-3.5" />
+                  <span>Хэвлэх / PDF</span>
+                </button>
+                <button
+                  onClick={() => setShowInvoiceModal(false)}
+                  className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Invoice Document */}
+            <div className="border border-slate-200 rounded-2xl p-6 sm:p-8 space-y-6 print:border-none print:p-0">
+              {/* Invoice Header */}
+              <div className="flex justify-between items-start border-b border-slate-200 pb-5">
+                <div>
+                  <h2 className="text-xl font-black text-slate-900 tracking-tight">
+                    МАРТА ГРИН ЛЭЙК СӨХ
+                  </h2>
+                  <p className="text-xs text-slate-500 mt-0.5">
+                    Улаанбаатар хот, Сүхбаатар дүүрэг, 9-р хороо
+                  </p>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    Регистр: 8493021 | Утас: 7711-2233
+                  </p>
+                </div>
+                <div className="text-right">
+                  <span className="inline-block px-3 py-1 bg-slate-100 text-slate-800 rounded-lg font-mono text-xs font-bold mb-1">
+                    НЭХЭМЖЛЭХ
+                  </span>
+                  <p className="text-xs text-slate-500 font-mono">
+                    № INV-{bill.month.replace(/[^0-9]/g, '')}-{bill.unitNumber}
+                  </p>
+                  <p className="text-xs text-slate-500">
+                    Огноо: {new Date().toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Bill To */}
+              <div className="grid grid-cols-2 gap-4 text-xs bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <div>
+                  <span className="text-slate-400 block font-semibold uppercase text-[10px]">
+                    ТӨЛБӨР ТӨЛӨГЧ:
+                  </span>
+                  <p className="font-bold text-slate-900 text-sm mt-0.5">
+                    {bill.apartmentNumber}, {bill.unitNumber}-р тоот
+                  </p>
+                  <p className="text-slate-500">Оршин суугч</p>
+                </div>
+                <div>
+                  <span className="text-slate-400 block font-semibold uppercase text-[10px]">
+                    ХАМРАХ ХУГАЦАА:
+                  </span>
+                  <p className="font-bold text-slate-900 text-sm mt-0.5">{bill.month}</p>
+                  <p className="text-slate-500">СӨХ-ийн сарын төлбөр</p>
+                </div>
+              </div>
+
+              {/* Items Table */}
+              <div>
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100 text-slate-600 font-bold uppercase text-[10px] border-b border-slate-200">
+                    <tr>
+                      <th className="py-2.5 px-3">№</th>
+                      <th className="py-2.5 px-3">Үйлчилгээний нэр</th>
+                      <th className="py-2.5 px-3 text-center">Хэмжих нэгж</th>
+                      <th className="py-2.5 px-3 text-right">Дүн (₮)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    <tr>
+                      <td className="py-2 px-3 font-mono text-slate-400">1</td>
+                      <td className="py-2 px-3 font-medium text-slate-800">
+                        Орц, нийтийн эзэмшлийн цэвэрлэгээ, ариутгал
+                      </td>
+                      <td className="py-2 px-3 text-center text-slate-500">сар</td>
+                      <td className="py-2 px-3 text-right font-mono font-semibold">
+                        {(bill.breakdown?.cleaning ?? Math.round(bill.amount * 0.28)).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 font-mono text-slate-400">2</td>
+                      <td className="py-2 px-3 font-medium text-slate-800">
+                        Харуул хамгаалалт, аюулгүй байдлын үйлчилгээ
+                      </td>
+                      <td className="py-2 px-3 text-center text-slate-500">сар</td>
+                      <td className="py-2 px-3 text-right font-mono font-semibold">
+                        {(bill.breakdown?.security ?? Math.round(bill.amount * 0.35)).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 font-mono text-slate-400">3</td>
+                      <td className="py-2 px-3 font-medium text-slate-800">
+                        Цахилгаан шат (Лифт)-ийн ашиглалт, үзлэг засвар
+                      </td>
+                      <td className="py-2 px-3 text-center text-slate-500">сар</td>
+                      <td className="py-2 px-3 text-right font-mono font-semibold">
+                        {(bill.breakdown?.elevator ?? Math.round(bill.amount * 0.16)).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 font-mono text-slate-400">4</td>
+                      <td className="py-2 px-3 font-medium text-slate-800">
+                        Ахуйн хог хаягдал ачилт, тээвэрлэлт
+                      </td>
+                      <td className="py-2 px-3 text-center text-slate-500">сар</td>
+                      <td className="py-2 px-3 text-right font-mono font-semibold">
+                        {(bill.breakdown?.waste ?? Math.round(bill.amount * 0.08)).toLocaleString()}
+                      </td>
+                    </tr>
+                    <tr>
+                      <td className="py-2 px-3 font-mono text-slate-400">5</td>
+                      <td className="py-2 px-3 font-medium text-slate-800">
+                        СӨХ-ийн захиргааны зардал, их засварын сан
+                      </td>
+                      <td className="py-2 px-3 text-center text-slate-500">сар</td>
+                      <td className="py-2 px-3 text-right font-mono font-semibold">
+                        {(bill.breakdown?.management ?? Math.round(bill.amount * 0.13)).toLocaleString()}
+                      </td>
+                    </tr>
+                  </tbody>
+                  <tfoot className="border-t-2 border-slate-300 font-bold">
+                    <tr>
+                      <td colSpan={3} className="py-2 px-3 text-right text-slate-600">
+                        Сарын хураамж:
+                      </td>
+                      <td className="py-2 px-3 text-right font-mono">
+                        {bill.amount.toLocaleString()} ₮
+                      </td>
+                    </tr>
+                    {bill.previousBalance > 0 && (
+                      <tr>
+                        <td colSpan={3} className="py-2 px-3 text-right text-rose-600">
+                          Өмнөх үлдэгдэл:
+                        </td>
+                        <td className="py-2 px-3 text-right font-mono text-rose-600">
+                          +{bill.previousBalance.toLocaleString()} ₮
+                        </td>
+                      </tr>
+                    )}
+                    <tr className="text-sm bg-slate-50">
+                      <td colSpan={3} className="py-3 px-3 text-right text-slate-900 font-black">
+                        НИЙТ ТӨЛБӨР:
+                      </td>
+                      <td className="py-3 px-3 text-right font-mono font-black text-indigo-700">
+                        {bill.totalDue.toLocaleString()} ₮
+                      </td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+
+              {/* Payment instructions footer */}
+              <div className="border-t border-slate-200 pt-4 flex flex-col sm:flex-row justify-between gap-4 text-xs">
+                <div>
+                  <p className="font-bold text-slate-800 mb-1">Шилжүүлэх данс:</p>
+                  <p className="text-slate-600 font-mono">
+                    Хаан банк: <strong className="text-slate-900">5012345678</strong> (Марта Грин Лэйк СӨХ)
+                  </p>
+                  <p className="text-slate-600 font-mono">
+                    Голомт банк: <strong className="text-slate-900">1234567890</strong> (Марта Грин Лэйк СӨХ)
+                  </p>
+                  <p className="text-amber-800 font-semibold mt-1">
+                    Гүйлгээний утга: <span className="font-mono">{bill.unitNumber} тоот</span>
+                  </p>
+                </div>
+                <div className="text-right sm:self-end">
+                  <div className="border-t border-dashed border-slate-300 pt-2 w-36 ml-auto">
+                    <p className="text-[10px] text-slate-400">Тамга, тэмдэг / Нягтлан</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       )}

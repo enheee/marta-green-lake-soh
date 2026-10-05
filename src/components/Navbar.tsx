@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useState } from 'react';
-import { Building2, Bell, CreditCard, MessageSquare, FileText, Shield, Menu, X, Vote, Car } from 'lucide-react';
+import { Building2, Bell, CreditCard, MessageSquare, FileText, Shield, Menu, X, Vote, Car, Gauge, Package, Video } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -12,10 +12,12 @@ export default function Navbar() {
   const navLinks = [
     { name: 'Нүүр', href: '/', icon: Building2 },
     { name: 'Төлбөр', href: '/bills', icon: CreditCard },
-    { name: 'Зарлал', href: '/announcements', icon: Bell },
-    { name: 'Санал асуулга', href: '/polls', icon: Vote },
+    { name: 'Тоолуур', href: '/meters', icon: Gauge },
+    { name: 'Илгээмж', href: '/deliveries', icon: Package },
     { name: 'Зогсоол', href: '/parking', icon: Car },
-    { name: 'Дуудлага', href: '/requests', icon: MessageSquare },
+    { name: 'Камер', href: '/cctv', icon: Video },
+    { name: 'Зарлал', href: '/announcements', icon: Bell },
+    { name: 'Санал', href: '/polls', icon: Vote },
     { name: 'Тайлан', href: '/reports', icon: FileText },
   ];
 
@@ -45,13 +47,13 @@ export default function Navbar() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-sm font-medium transition-all ${
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 lg:px-3 lg:gap-2 rounded-lg text-xs lg:text-sm font-semibold transition-all ${
                     isActive
-                      ? 'bg-sky-50 text-sky-700 font-semibold'
+                      ? 'bg-sky-50 text-sky-700'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                   }`}
                 >
-                  <Icon className={`w-4 h-4 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
+                  <Icon className={`w-3.5 h-3.5 lg:w-4 lg:h-4 ${isActive ? 'text-sky-600' : 'text-slate-400'}`} />
                   {link.name}
                 </Link>
               );

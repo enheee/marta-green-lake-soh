@@ -13,6 +13,9 @@ import {
   TrendingUp,
   ArrowRight,
   Plus,
+  Gauge,
+  Package,
+  Video,
 } from 'lucide-react';
 import { BillRecord, ComplaintRequest, Announcement } from '@/lib/types';
 
@@ -128,6 +131,56 @@ export default function AdminDashboardPage() {
             Хүсэлтүүд рүү очих <ArrowRight className="w-3 h-3" />
           </Link>
         </div>
+      </div>
+      {/* Smart Operations Quick Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link
+          href="/admin/meters"
+          className="bg-white p-4 rounded-2xl border border-slate-200 hover:border-indigo-300 shadow-sm hover:shadow transition group flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition">
+              <Gauge className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">Тоолуурын заалт</h3>
+              <p className="text-xs text-slate-400">Ус, цахилгаан шалгах, CSV экспорт</p>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-indigo-600 group-hover:translate-x-1 transition" />
+        </Link>
+
+        <Link
+          href="/admin/deliveries"
+          className="bg-white p-4 rounded-2xl border border-slate-200 hover:border-amber-300 shadow-sm hover:shadow transition group flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-105 transition">
+              <Package className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">Жижүүрийн илгээмж</h3>
+              <p className="text-xs text-slate-400">Ирсэн хүргэлтийг 5 секундэд бүртгэх</p>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-amber-600 group-hover:translate-x-1 transition" />
+        </Link>
+
+        <Link
+          href="/admin/cctv"
+          className="bg-white p-4 rounded-2xl border border-slate-200 hover:border-rose-300 shadow-sm hover:shadow transition group flex items-center justify-between"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center group-hover:scale-105 transition">
+              <Video className="w-5 h-5" />
+            </div>
+            <div>
+              <h3 className="font-bold text-slate-900 text-sm">Камерын бичлэг</h3>
+              <p className="text-xs text-slate-400">Бичлэг шүүх хүсэлт шийдвэрлэх</p>
+            </div>
+          </div>
+          <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-rose-600 group-hover:translate-x-1 transition" />
+        </Link>
       </div>
 
       {/* Two columns: Unpaid units list & Pending Requests */}
