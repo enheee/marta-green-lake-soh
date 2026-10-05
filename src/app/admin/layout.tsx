@@ -111,6 +111,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const adminNav = [
     { name: 'Хяналтын самбар', href: '/admin', icon: LayoutDashboard },
     { name: 'Төлбөр & Баримт', href: '/admin/bills', icon: CreditCard },
+    { name: 'Санхүүгийн тайлан', href: '/admin/reports', icon: Layers },
     { name: 'Тоолуурын заалт', href: '/admin/meters', icon: Gauge },
     { name: 'Жижүүрийн илгээмж', href: '/admin/deliveries', icon: Package },
     { name: 'Камерын бичлэг', href: '/admin/cctv', icon: Video },
