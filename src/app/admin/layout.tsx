@@ -20,6 +20,7 @@ import {
   Gauge,
   Package,
   Video,
+  Layers,
 } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
