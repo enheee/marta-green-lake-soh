@@ -28,8 +28,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json(created, { status: 201 });
-  } catch (error) {
-    return NextResponse.json({ error: 'Алдаа гарлаа' }, { status: 500 });
+  } catch (error: any) {
+    console.error('Error in POST /api/expenses:', error);
+    return NextResponse.json({ error: 'Алдаа гарлаа', details: error?.message || String(error) }, { status: 500 });
   }
 }
 
