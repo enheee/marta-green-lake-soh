@@ -37,8 +37,15 @@ interface DatabaseSchema {
   expenses: ExpenseReceipt[];
 }
 
-const DATA_DIR = path.join(process.cwd(), 'data');
+// On Vercel serverless, process.cwd() is read-only.
+// Use /tmp directory for writable database file in serverless or fallback to memory
+const IS_VERCEL = process.env.VERCEL === '1' || process.env.NODE_ENV === 'production';
+const DATA_DIR = IS_VERCEL ? '/tmp/data' : path.join(process.cwd(), 'data');
 const DB_FILE = path.join(DATA_DIR, 'db.json');
+const ORIGINAL_DB_FILE = path.join(process.cwd(), 'data', 'db.json');
+
+// In-memory cache fallback to guarantee 100% operation
+let memoryDb: DatabaseSchema | null = null;
 
 const initialPolls: Poll[] = [
   {
@@ -268,110 +275,77 @@ const initialExpenses: ExpenseReceipt[] = [
 ];
 
 function ensureDataFile(): DatabaseSchema {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  if (memoryDb) {
+    return memoryDb;
   }
 
-  if (!fs.existsSync(DB_FILE)) {
-    const initialDb: DatabaseSchema = {
-      settings: initialSettings,
-      announcements: initialAnnouncements,
-      bills: initialBills,
-      requests: initialRequests,
-      reports: initialReports,
-      polls: initialPolls,
-      receipts: initialReceipts,
-      vehicles: initialVehicles,
-      meters: initialMeters,
-      deliveries: initialDeliveries,
-      cctvRequests: initialCctvRequests,
-      expenses: initialExpenses,
-    };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), 'utf-8');
-    return initialDb;
+  // 1. Try reading from DB_FILE (e.g. /tmp/data/db.json)
+  if (fs.existsSync(DB_FILE)) {
+    try {
+      const content = fs.readFileSync(DB_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      memoryDb = parsed;
+      return memoryDb!;
+    } catch (e) {
+      console.warn('Could not read existing DB_FILE:', e);
+    }
   }
 
+  // 2. Try reading from ORIGINAL_DB_FILE (process.cwd()/data/db.json)
+  if (fs.existsSync(ORIGINAL_DB_FILE)) {
+    try {
+      const content = fs.readFileSync(ORIGINAL_DB_FILE, 'utf-8');
+      const parsed = JSON.parse(content);
+      memoryDb = parsed;
+      // Try copying to DB_FILE if writable
+      try {
+        if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+        fs.writeFileSync(DB_FILE, JSON.stringify(parsed, null, 2), 'utf-8');
+      } catch (err) {}
+      return memoryDb!;
+    } catch (e) {
+      console.warn('Could not read ORIGINAL_DB_FILE:', e);
+    }
+  }
+
+  // 3. Fallback to initial seed data
+  const initialDb: DatabaseSchema = {
+    settings: initialSettings,
+    announcements: initialAnnouncements,
+    bills: initialBills,
+    requests: initialRequests,
+    reports: initialReports,
+    polls: initialPolls,
+    receipts: initialReceipts,
+    vehicles: initialVehicles,
+    meters: initialMeters,
+    deliveries: initialDeliveries,
+    cctvRequests: initialCctvRequests,
+    expenses: initialExpenses,
+  };
+
+  memoryDb = initialDb;
   try {
-    const content = fs.readFileSync(DB_FILE, 'utf-8');
-    const parsed: Partial<DatabaseSchema> = JSON.parse(content);
-    let dirty = false;
-
-    if (!parsed.polls) {
-      parsed.polls = initialPolls;
-      dirty = true;
-    }
-    if (!parsed.receipts) {
-      parsed.receipts = initialReceipts;
-      dirty = true;
-    }
-    if (!parsed.vehicles) {
-      parsed.vehicles = initialVehicles;
-      dirty = true;
-    }
-    if (!parsed.meters) {
-      parsed.meters = initialMeters;
-      dirty = true;
-    }
-    if (!parsed.deliveries) {
-      parsed.deliveries = initialDeliveries;
-      dirty = true;
-    }
-    if (!parsed.cctvRequests) {
-      parsed.cctvRequests = initialCctvRequests;
-      dirty = true;
-    }
-    if (!parsed.expenses) {
-      parsed.expenses = initialExpenses;
-      dirty = true;
-    }
-
-    // Attach sample fee breakdown to bills if missing
-    if (parsed.bills) {
-      parsed.bills.forEach((b) => {
-        if (!b.breakdown) {
-          b.breakdown = {
-            cleaning: 8000,
-            security: 10000,
-            elevator: 5000,
-            management: 3000,
-            waste: 2000,
-          };
-          dirty = true;
-        }
-      });
-    }
-
-    const fullDb = parsed as DatabaseSchema;
-    if (dirty) {
-      saveData(fullDb);
-    }
-    return fullDb;
-  } catch (error) {
-    console.error('Error reading db.json, re-initializing:', error);
-    const initialDb: DatabaseSchema = {
-      settings: initialSettings,
-      announcements: initialAnnouncements,
-      bills: initialBills,
-      requests: initialRequests,
-      reports: initialReports,
-      polls: initialPolls,
-      receipts: initialReceipts,
-      vehicles: initialVehicles,
-      meters: initialMeters,
-      deliveries: initialDeliveries,
-      cctvRequests: initialCctvRequests,
-      expenses: initialExpenses,
-    };
+    if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
     fs.writeFileSync(DB_FILE, JSON.stringify(initialDb, null, 2), 'utf-8');
-    return initialDb;
+  } catch (err) {
+    // Read-only filesystem in serverless, memoryDb will suffice
   }
+
+  return memoryDb;
 }
 
 function saveData(data: DatabaseSchema): void {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  memoryDb = data;
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  } catch (err) {
+    // In Vercel serverless where filesystem writes are restricted, memoryDb preserves the state
+    console.warn('Filesystem write failed, saved to memoryDb:', err);
   }
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
 }
 
 // Settings
