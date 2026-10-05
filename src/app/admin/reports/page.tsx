@@ -124,14 +124,25 @@ export default function AdminReportsPage() {
         setExpAmount('');
         setExpStore('');
         setExpPhoto('');
+        showToast('Зарлагын чек амжилттай бүртгэгдлээ!');
       } else {
-        alert('Зарлага хадгалахад алдаа гарлаа');
+        showToast('Зарлага хадгалахад алдаа гарлаа', 'error');
       }
     } catch (err) {
-      alert('Холболтын алдаа');
+      showToast('Холболтын алдаа гарлаа', 'error');
     } finally {
       setSavingExpense(false);
     }
+  };
+
+  // Toast Notification State
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [toastType, setToastType] = useState<'success' | 'error'>('success');
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setToastMessage(message);
+    setToastType(type);
+    setTimeout(() => setToastMessage(null), 3500);
   };
 
   // Delete Expense
@@ -141,9 +152,12 @@ export default function AdminReportsPage() {
       const res = await fetch(`/api/expenses?id=${id}`, { method: 'DELETE' });
       if (res.ok) {
         setExpenses(expenses.filter((e) => e.id !== id));
+        showToast('Зарлагын баримт амжилттай устгагдлаа!');
+      } else {
+        showToast('Устгахад алдаа гарлаа', 'error');
       }
     } catch (err) {
-      alert('Устгахад алдаа гарлаа');
+      showToast('Устгахад алдаа гарлаа', 'error');
     }
   };
 
@@ -170,10 +184,12 @@ export default function AdminReportsPage() {
         const created = await res.json();
         setReports([created, ...reports]);
         setShowPublishModal(false);
-        alert('Тайлан амжилттай нэгтгэгдэж оршин суугчдын порталд нийтлэгдлээ!');
+        showToast('Тайлан амжилттай нэгтгэгдэж оршин суугчдын порталд нийтлэгдлээ!');
+      } else {
+        showToast('Нийтлэхэд алдаа гарлаа', 'error');
       }
     } catch (err) {
-      alert('Нийтлэхэд алдаа гарлаа');
+      showToast('Нийтлэхэд алдаа гарлаа', 'error');
     } finally {
       setPublishing(false);
     }
@@ -228,7 +244,27 @@ export default function AdminReportsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="fixed top-6 right-6 z-50 animate-bounce">
+          <div
+            className={`px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold border backdrop-blur-md ${
+              toastType === 'success'
+                ? 'bg-emerald-950/90 text-emerald-300 border-emerald-500/40'
+                : 'bg-rose-950/90 text-rose-300 border-rose-500/40'
+            }`}
+          >
+            {toastType === 'success' ? (
+              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+            ) : (
+              <AlertCircle className="w-4 h-4 text-rose-400" />
+            )}
+            <span>{toastMessage}</span>
+          </div>
+        </div>
+      )}
+
       {/* Top Banner */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 to-slate-800 p-6 rounded-3xl text-white shadow-lg">
         <div>
