@@ -19,6 +19,8 @@ export interface BillRecord {
   totalDue: number; // Нийт төлөх
   status: 'Төлсөн' | 'Төлөөгүй' | 'Дутуу төлсөн';
   paidDate?: string;
+  floor?: number; // e.g. 2 .. 16
+  monthHistory?: { [monthKey: string]: { status: 'Төлсөн' | 'Төлөөгүй'; amount: number } }; // e.g. "2-р сар": { status: 'Төлсөн', amount: 40000 }
   // Breakdown of monthly fee
   breakdown?: {
     cleaning: number;

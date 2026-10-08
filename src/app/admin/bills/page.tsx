@@ -18,11 +18,12 @@ import {
   Eye,
   CheckCheck,
   Building,
+  LayoutGrid,
 } from 'lucide-react';
 import { BillRecord, PaymentReceipt } from '@/lib/types';
 
 export default function AdminBillsPage() {
-  const [activeTab, setActiveTab] = useState<'bills' | 'receipts'>('bills');
+  const [activeTab, setActiveTab] = useState<'bills' | 'matrix' | 'receipts'>('matrix');
   const [bills, setBills] = useState<BillRecord[]>([]);
   const [receipts, setReceipts] = useState<PaymentReceipt[]>([]);
   const [loading, setLoading] = useState(true);
@@ -292,7 +293,18 @@ export default function AdminBillsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b border-slate-200 pb-2">
+      <div className="flex gap-2 border-b border-slate-200 pb-2 flex-wrap">
+        <button
+          onClick={() => setActiveTab('matrix')}
+          className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+            activeTab === 'matrix'
+              ? 'bg-sky-600 text-white shadow-sm'
+              : 'text-slate-600 hover:bg-slate-100'
+          }`}
+        >
+          <LayoutGrid className="w-4 h-4" />
+          <span>Давхар, сарын нэгдсэн самбар (Цаасан тайлангийн дижитал хувилбар)</span>
+        </button>
         <button
           onClick={() => setActiveTab('bills')}
           className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
@@ -301,7 +313,7 @@ export default function AdminBillsPage() {
               : 'text-slate-600 hover:bg-slate-100'
           }`}
         >
-          Төлбөрийн нэгдсэн бүртгэл ({bills.length})
+          Жагсаалтаар харах ({bills.length})
         </button>
         <button
           onClick={() => setActiveTab('receipts')}
@@ -418,6 +430,159 @@ export default function AdminBillsPage() {
                       </td>
                     </tr>
                   ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* TAB: Digital Floor Matrix Board (Paper Report Digitized) */}
+      {activeTab === 'matrix' && (
+        <div className="space-y-4">
+          {/* Summary Box */}
+          <div className="bg-gradient-to-r from-slate-900 to-slate-800 text-white p-5 rounded-2xl shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 text-[11px] font-bold mb-1 border border-emerald-500/30">
+                <LayoutGrid className="w-3.5 h-3.5" />
+                МАРТА-8 СӨХ (102-р байр) Төлбөрийн нэгдсэн самбар
+              </div>
+              <h3 className="text-base font-black">Давхар, сар бүрийн төлөлтийн дижитал архив</h3>
+              <p className="text-xs text-slate-300">
+                Орцонд цаасаар наадаг байсан тайланг 100% дижитал болгосон шууд төлөв засах боломжтой самбар.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-4 bg-slate-800/80 px-4 py-3 rounded-xl border border-slate-700/80">
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Нийт айлын тоо</span>
+                <span className="text-lg font-black text-white">{bills.length} тоот</span>
+              </div>
+              <div className="w-px h-8 bg-slate-700" />
+              <div>
+                <span className="text-[10px] text-slate-400 uppercase font-bold block">Нийт авлага (Өр)</span>
+                <span className="text-lg font-black text-rose-400 font-mono">
+                  {bills.reduce((acc, b) => acc + b.totalDue, 0).toLocaleString()} ₮
+                </span>
+              </div>
+            </div>
+          </div>
+
+          {/* Matrix Table */}
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+            <div className="p-3 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2 text-xs">
+              <div className="flex items-center gap-3">
+                <span className="flex items-center gap-1.5 font-bold text-slate-700">
+                  <span className="w-3 h-3 rounded bg-emerald-500 inline-block" />
+                  Төлөгдсөн
+                </span>
+                <span className="flex items-center gap-1.5 font-bold text-rose-700">
+                  <span className="w-3 h-3 rounded bg-rose-500 inline-block" />
+                  Төлөөгүй (40,000₮)
+                </span>
+                <span className="text-slate-400">| Сарын суурь хураамж: <strong>40,000 ₮</strong></span>
+              </div>
+
+              <span className="text-[11px] text-slate-500">
+                💡 Нүдэн дээр дарж тухайн сарын төлөлтийн төлөвийг шууд сольж болно
+              </span>
+            </div>
+
+            <div className="overflow-x-auto max-h-[600px] overflow-y-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-900 text-white font-bold text-[11px] sticky top-0 z-10 shadow-sm">
+                  <tr>
+                    <th className="py-2.5 px-3 border border-slate-800 w-16 text-center">Давхар</th>
+                    <th className="py-2.5 px-3 border border-slate-800 w-16 text-center">Тоот</th>
+                    {['2-р сар', '3-р сар', '4-р сар', '5-р сар', '6-р сар', '7-р сар', '8-р сар', '9-р сар', '10-р сар'].map((m) => (
+                      <th key={m} className="py-2.5 px-2 border border-slate-800 text-center font-mono">
+                        {m}
+                      </th>
+                    ))}
+                    <th className="py-2.5 px-3 border border-slate-800 text-right font-mono">Төлбөрийн үлдэгдэл</th>
+                    <th className="py-2.5 px-3 border border-slate-800 text-center">Үйлдэл</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200 font-medium text-slate-800">
+                  {bills.map((b) => {
+                    const months = ['2-р сар', '3-р сар', '4-р сар', '5-р сар', '6-р сар', '7-р сар', '8-р сар', '9-р сар', '10-р сар'];
+                    return (
+                      <tr key={b.id} className="hover:bg-sky-50/50 transition-colors">
+                        <td className="py-2 px-3 border border-slate-200 text-center font-bold text-slate-500 bg-slate-50/50">
+                          {b.floor || Math.min(16, Math.floor((Number(b.unitNumber) - 1) / 8) + 2)} давхар
+                        </td>
+                        <td className="py-2 px-3 border border-slate-200 text-center font-black text-slate-900 bg-slate-50/80">
+                          {b.unitNumber}-р тоот
+                        </td>
+                        {months.map((m) => {
+                          const monthData = b.monthHistory?.[m];
+                          const isPaid = monthData ? monthData.status === 'Төлсөн' : b.status === 'Төлсөн';
+                          return (
+                            <td
+                              key={m}
+                              onClick={() => {
+                                // Toggle this month status
+                                const updatedBills = bills.map((billItem) => {
+                                  if (billItem.id !== b.id) return billItem;
+                                  const currentHistory = { ...(billItem.monthHistory || {}) };
+                                  const newStatus = isPaid ? 'Төлөөгүй' : 'Төлсөн';
+                                  currentHistory[m] = { status: newStatus, amount: 40000 };
+                                  
+                                  // Recalculate totalDue
+                                  const unpaidCount = months.filter(
+                                    (monthKey) => currentHistory[monthKey]?.status === 'Төлөөгүй'
+                                  ).length;
+                                  const newTotalDue = unpaidCount * 40000;
+                                  const newStatusType: 'Төлсөн' | 'Төлөөгүй' = newTotalDue === 0 ? 'Төлсөн' : 'Төлөөгүй';
+
+                                  return {
+                                    ...billItem,
+                                    monthHistory: currentHistory,
+                                    totalDue: newTotalDue,
+                                    status: newStatusType,
+                                  };
+                                });
+                                setBills(updatedBills);
+                              }}
+                              className={`py-2 px-2 border border-slate-200 text-center font-mono cursor-pointer transition select-none ${
+                                isPaid
+                                  ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold'
+                                  : 'bg-rose-50 text-rose-800 hover:bg-rose-100 font-bold'
+                              }`}
+                              title={`${m}: Төлвийг солихын тулд дарна уу`}
+                            >
+                              {isPaid ? (
+                                <span className="inline-block text-[10px] text-emerald-700">✓ Төлсөн</span>
+                              ) : (
+                                <span className="inline-block text-[10px] text-rose-700">40,000₮</span>
+                              )}
+                            </td>
+                          );
+                        })}
+                        <td className="py-2 px-3 border border-slate-200 text-right font-mono font-black text-sm">
+                          {b.totalDue === 0 ? (
+                            <span className="text-emerald-600">0 ₮</span>
+                          ) : (
+                            <span className="text-rose-600 bg-rose-50 px-2 py-0.5 rounded">
+                              {b.totalDue.toLocaleString()} ₮
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-2 px-3 border border-slate-200 text-center">
+                          <button
+                            onClick={() => handleToggleStatus(b)}
+                            className={`px-2 py-0.5 rounded text-[11px] font-bold border transition ${
+                              b.status === 'Төлсөн'
+                                ? 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100'
+                                : 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                            }`}
+                          >
+                            {b.status === 'Төлсөн' ? 'Өртэй болгох' : 'Бүгдийг төлсөн'}
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>

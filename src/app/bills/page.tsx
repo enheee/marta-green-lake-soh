@@ -285,8 +285,8 @@ function BillsContent() {
 
         {/* Quick select pills */}
         <div className="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-slate-400 font-medium">Турших тоот:</span>
-          {['5', '12', '24', '35', '48'].map((sampleUnit) => (
+          <span className="text-xs text-slate-400 font-medium">Шуурхай сонгох:</span>
+          {['4', '12', '21', '42', '54', '88', '104'].map((sampleUnit) => (
             <button
               key={sampleUnit}
               onClick={() => {
