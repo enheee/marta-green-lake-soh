@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getBillByUnit, getBills, updateBill, updateMultipleBills } from '@/lib/store';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const unit = searchParams.get('unit');

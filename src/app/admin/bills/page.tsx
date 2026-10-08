@@ -49,7 +49,7 @@ export default function AdminBillsPage() {
 
   const fetchBills = async () => {
     try {
-      const res = await fetch('/api/bills');
+      const res = await fetch('/api/bills', { cache: 'no-store' });
       if (res.ok) setBills(await res.json());
     } catch (err) {
       console.error(err);

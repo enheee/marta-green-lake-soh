@@ -163,7 +163,9 @@ function BillsContent() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/bills?unit=${encodeURIComponent(unit)}`);
+      const res = await fetch(`/api/bills?unit=${encodeURIComponent(unit)}`, {
+        cache: 'no-store',
+      });
       if (!res.ok) {
         if (res.status === 404) {
           setError(`${unit}-р тоотын төлбөрийн мэдээлэл бүртгэгдээгүй байна.`);
