@@ -38,8 +38,8 @@ export default function HomePage() {
     async function loadData() {
       try {
         const [settRes, annRes] = await Promise.all([
-          fetch('/api/settings'),
-          fetch('/api/announcements'),
+          fetch('/api/settings', { cache: 'no-store' }),
+          fetch('/api/announcements', { cache: 'no-store' }),
         ]);
         if (settRes.ok) setSettings(await settRes.json());
         if (annRes.ok) setAnnouncements(await annRes.json());

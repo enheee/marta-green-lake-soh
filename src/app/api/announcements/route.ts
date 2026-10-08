@@ -6,6 +6,8 @@ import {
   updateAnnouncement,
 } from '@/lib/store';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   const announcements = getAnnouncements();
   return NextResponse.json(announcements);

@@ -20,7 +20,7 @@ export default function AnnouncementsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>('Бүгд');
 
   useEffect(() => {
-    fetch('/api/announcements')
+    fetch('/api/announcements', { cache: 'no-store' })
       .then((res) => res.json())
       .then((data) => setAnnouncements(data))
       .catch(console.error)
