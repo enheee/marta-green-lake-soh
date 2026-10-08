@@ -478,9 +478,11 @@ export default function AdminBillsPage() {
                 </span>
                 <span className="flex items-center gap-1.5 font-bold text-rose-700">
                   <span className="w-3 h-3 rounded bg-rose-500 inline-block" />
-                  Төлөөгүй (40,000₮)
+                  Төлөөгүй
                 </span>
-                <span className="text-slate-400">| Сарын суурь хураамж: <strong>40,000 ₮</strong></span>
+                <span className="text-slate-500">
+                  | Тариф: <strong>2-оос 9-р сар: 50,000₮</strong> / <strong>10-р сар: 40,000₮</strong>
+                </span>
               </div>
 
               <span className="text-[11px] text-slate-500">
@@ -494,11 +496,14 @@ export default function AdminBillsPage() {
                   <tr>
                     <th className="py-2.5 px-3 border border-slate-800 w-16 text-center">Давхар</th>
                     <th className="py-2.5 px-3 border border-slate-800 w-16 text-center">Тоот</th>
-                    {['2-р сар', '3-р сар', '4-р сар', '5-р сар', '6-р сар', '7-р сар', '8-р сар', '9-р сар', '10-р сар'].map((m) => (
+                    {['2-р сар', '3-р сар', '4-р сар', '5-р сар', '6-р сар', '7-р сар', '8-р сар', '9-р сар'].map((m) => (
                       <th key={m} className="py-2.5 px-2 border border-slate-800 text-center font-mono">
-                        {m}
+                        {m} (50к)
                       </th>
                     ))}
+                    <th className="py-2.5 px-2 border border-slate-800 text-center font-mono text-cyan-300">
+                      10-р сар (40к)
+                    </th>
                     <th className="py-2.5 px-3 border border-slate-800 text-right font-mono">Төлбөрийн үлдэгдэл</th>
                     <th className="py-2.5 px-3 border border-slate-800 text-center">Үйлдэл</th>
                   </tr>
@@ -517,6 +522,7 @@ export default function AdminBillsPage() {
                         {months.map((m) => {
                           const monthData = b.monthHistory?.[m];
                           const isPaid = monthData ? monthData.status === 'Төлсөн' : b.status === 'Төлсөн';
+                          const feeForMonth = m === '10-р сар' ? 40000 : 50000;
                           return (
                             <td
                               key={m}
@@ -526,13 +532,16 @@ export default function AdminBillsPage() {
                                   if (billItem.id !== b.id) return billItem;
                                   const currentHistory = { ...(billItem.monthHistory || {}) };
                                   const newStatus = isPaid ? 'Төлөөгүй' : 'Төлсөн';
-                                  currentHistory[m] = { status: newStatus, amount: 40000 };
+                                  currentHistory[m] = { status: newStatus, amount: feeForMonth };
                                   
-                                  // Recalculate totalDue
-                                  const unpaidCount = months.filter(
-                                    (monthKey) => currentHistory[monthKey]?.status === 'Төлөөгүй'
-                                  ).length;
-                                  const newTotalDue = unpaidCount * 40000;
+                                  // Recalculate totalDue with 50,000 for months 2-9 and 40,000 for month 10
+                                  let newTotalDue = 0;
+                                  months.forEach((monthKey) => {
+                                    if (currentHistory[monthKey]?.status === 'Төлөөгүй') {
+                                      newTotalDue += (monthKey === '10-р сар' ? 40000 : 50000);
+                                    }
+                                  });
+
                                   const newStatusType: 'Төлсөн' | 'Төлөөгүй' = newTotalDue === 0 ? 'Төлсөн' : 'Төлөөгүй';
 
                                   return {
@@ -549,12 +558,14 @@ export default function AdminBillsPage() {
                                   ? 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 font-bold'
                                   : 'bg-rose-50 text-rose-800 hover:bg-rose-100 font-bold'
                               }`}
-                              title={`${m}: Төлвийг солихын тулд дарна уу`}
+                              title={`${m} (${feeForMonth.toLocaleString()}₮): Төлвийг солихын тулд дарна уу`}
                             >
                               {isPaid ? (
                                 <span className="inline-block text-[10px] text-emerald-700">✓ Төлсөн</span>
                               ) : (
-                                <span className="inline-block text-[10px] text-rose-700">40,000₮</span>
+                                <span className="inline-block text-[10px] text-rose-700 font-bold">
+                                  {feeForMonth === 40000 ? '40,000₮' : '50,000₮'}
+                                </span>
                               )}
                             </td>
                           );
