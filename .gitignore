@@ -29,3 +29,13 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# A32 local bridge credentials and build checks
+/.a32-test-cache/
+/.next-a32-check/
+/.next-a32-check-*/
+/integration/a32-controller-config.json
+/integration/a32-automation.json
+/integration/*.local.json
+/integration/pc-bridge/__pycache__/
+/integration/pc-bridge/.test-tmp/

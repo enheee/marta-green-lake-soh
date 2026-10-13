@@ -48,7 +48,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    await fetch('/api/a32/session', { method: 'DELETE' }).catch(() => undefined);
     sessionStorage.removeItem('soh_admin_auth');
     setIsAuthenticated(false);
     setPin('');
@@ -111,6 +112,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   const adminNav = [
     { name: 'Хяналтын самбар', href: '/admin', icon: LayoutDashboard },
+    { name: 'Төхөөрөмжийн удирдлага', href: '/admin/devices', icon: Gauge },
     { name: 'Төлбөр & Баримт', href: '/admin/bills', icon: CreditCard },
     { name: 'Санхүүгийн тайлан', href: '/admin/reports', icon: Layers },
     { name: 'Тоолуурын заалт', href: '/admin/meters', icon: Gauge },

@@ -1,0 +1,6 @@
+tunnel: REPLACE_WITH_TUNNEL_UUID
+credentials-file: REPLACE_WITH_ABSOLUTE_CREDENTIALS_JSON_PATH
+ingress:
+  - hostname: a32.example.com
+    service: http://127.0.0.1:8767
+  - service: http_status:404
