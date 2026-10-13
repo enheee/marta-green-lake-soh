@@ -5,6 +5,11 @@ import hmac
 from http.server import BaseHTTPRequestHandler
 import json
 import re
+from automation import validate
+
+
+def revision(settings):
+    return hashlib.sha256(json.dumps(settings, sort_keys=True, ensure_ascii=False).encode()).hexdigest()
 
 
 def make_handler(controller, store, token):
@@ -36,7 +41,7 @@ def make_handler(controller, store, token):
                     self.reply(200, {'ok': True, **controller('get_all_datas')})
                 elif self.path == '/automation':
                     snapshot = store.snapshot()
-                    self.reply(200, {'ok': True, 'settings': snapshot['settings'], 'events': snapshot['events'], 'server_time': datetime.now().astimezone().isoformat(timespec='seconds')})
+                    self.reply(200, {'ok': True, 'settings': snapshot['settings'], 'revision': revision(snapshot['settings']), 'events': snapshot['events'], 'server_time': datetime.now().astimezone().isoformat(timespec='seconds')})
                 else:
                     self.reply(404, {'ok': False, 'error': 'Not found'})
             except Exception:
@@ -44,6 +49,9 @@ def make_handler(controller, store, token):
 
         def do_POST(self):
             if not self.authorized():
+                return
+            if self.path == '/settings':
+                self.save_settings()
                 return
             if self.path not in ('/relay', '/scene'):
                 self.reply(404, {'ok': False, 'error': 'Not found'})
@@ -109,6 +117,34 @@ def make_handler(controller, store, token):
                     except OSError:
                         code, response = 503, {'ok': False, 'error': 'Команд илгээгдсэн байж болно. Түүх хадгалах алдаа гарлаа; төлөвөө шалгана уу.'}
                 self.reply(code, response)
+
+        def save_settings(self):
+            try:
+                size = int(self.headers.get('Content-Length', '0'))
+                if not 0 < size <= 32768:
+                    raise ValueError('Invalid request size')
+                data = json.loads(self.rfile.read(size))
+                if not isinstance(data, dict) or not isinstance(data.get('settings'), dict):
+                    raise ValueError('Invalid settings')
+                with store.command_lock, store.lock:
+                    current = store.data['settings']
+                    if data.get('revision') != revision(current):
+                        self.reply(409, {'ok': False, 'error': 'Тохиргоо өөр газар шинэчлэгдсэн байна. Засварыг хааж, шинэ төлөвөөс дахин засна уу.'})
+                        return
+                    # Portal editing never changes or enables schedules.
+                    clean = validate({**data['settings'], 'schedules': current['schedules']})
+                    previous = store.data['settings']
+                    store.data['settings'] = clean
+                    try:
+                        store.persist()
+                    except OSError:
+                        store.data['settings'] = previous
+                        raise
+                    self.reply(200, {'ok': True, 'settings': clean, 'revision': revision(clean)})
+            except (ValueError, TypeError, AttributeError):
+                self.reply(400, {'ok': False, 'error': 'Өрөө, реле эсвэл горимын тохиргоо буруу байна.'})
+            except OSError:
+                self.reply(503, {'ok': False, 'error': 'Тохиргоог хадгалж чадсангүй.'})
 
         def log_message(self, *_args):
             pass

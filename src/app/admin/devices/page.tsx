@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Activity, Clock, Gauge, Lock, LogOut, Power, RefreshCw, Wifi } from 'lucide-react';
+import SettingsEditor, { DeviceSettings } from './settings-editor';
 
 type Session = { configured: boolean; authenticated: boolean; bridgeConfigured: boolean };
 type DeviceStatus = { outputs: number[]; inputs: number[] };
 type Automation = {
+  revision: string;
   settings: {
     rooms: { id: string; name: string }[];
     channels: { id: number; name: string; room: string }[];
@@ -34,6 +36,7 @@ export default function DevicesPage() {
   const [room, setRoom] = useState('all');
   const [working, setWorking] = useState(false);
   const [updated, setUpdated] = useState('');
+  const [edit, setEdit] = useState<{ settings: DeviceSettings; revision: string } | null>(null);
   const pending = useRef(false);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
@@ -73,8 +76,19 @@ export default function DevicesPage() {
   }
 
   async function logout() {
-    try { await api('session', undefined, 'DELETE'); setStatus(null); setAutomation(null); setSession(s => s ? { ...s, authenticated: false } : s); setNotice(''); }
+    try { await api('session', undefined, 'DELETE'); setStatus(null); setAutomation(null); setEdit(null); setSession(s => s ? { ...s, authenticated: false } : s); setNotice(''); }
     catch (error) { failure(error); }
+  }
+
+  async function saveSettings(settings: DeviceSettings, revision: string) {
+    if (pending.current) throw new Error('Өмнөх үйлдлийг дуусахыг хүлээнэ үү.');
+    pending.current = true; setWorking(true);
+    try {
+      await api('settings', { settings, revision });
+      setNotice('Нэр, өрөө, горимыг хадгаллаа.');
+      setRoom('all');
+      await refresh();
+    } finally { pending.current = false; setWorking(false); }
   }
 
   async function command(path: string, body: object) {
@@ -114,6 +128,7 @@ export default function DevicesPage() {
       {!session.bridgeConfigured && <p className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">PC серверийн HTTPS холбоосыг Vercel дээр хараахан тохируулаагүй байна.</p>}
       {error && <p role="alert" className="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">{error}</p>}
       {notice && <p role="status" className="rounded-xl bg-emerald-50 p-4 text-sm text-emerald-700">{notice}</p>}
+      {edit ? <SettingsEditor settings={edit.settings} revision={edit.revision} save={saveSettings} close={() => setEdit(null)} /> : <button disabled={working || !status || !automation?.revision} onClick={() => { if (automation) setEdit({ settings: structuredClone(automation.settings), revision: automation.revision }); }} className="rounded-xl border bg-white px-5 py-3 text-sm font-bold disabled:opacity-40">Нэр, өрөө, горим засах</button>}
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {[{ name: 'Холболт', value: status ? 'Холбогдсон' : 'Тасарсан', icon: Wifi }, { name: 'Нийт реле', value: '32', icon: Gauge }, { name: 'Асаалттай', value: status ? status.outputs.filter(Boolean).length : '—', icon: Power }, { name: 'Идэвхтэй оролт', value: status ? status.inputs.filter(Boolean).length : '—', icon: Activity }].map(card => <div key={card.name} className="rounded-2xl border bg-white p-5"><card.icon className="mb-3 h-5 w-5 text-sky-600" /><p className="text-xs text-slate-500">{card.name}</p><p className="mt-2 text-xl font-black text-slate-900">{card.value}</p></div>)}
       </div>
@@ -126,7 +141,7 @@ export default function DevicesPage() {
         })}</div>
       </section>
       <div className="grid gap-6 lg:grid-cols-2">
-        <section className="rounded-2xl border bg-white p-6"><h3 className="font-bold text-slate-900">Нэг товчийн горим</h3><div className="mt-4 space-y-3">{settings?.scenes.map(scene => { const values = Object.values(scene.commands); return <div key={scene.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p className="font-semibold text-slate-900">{scene.name}</p><p className="mt-1 text-xs text-slate-500">{values.length ? `${values.filter(v => v === 1).length} асаах · ${values.filter(v => v === 0).length} унтраах` : 'Локал апп дээр реле сонгоно уу'}</p></div><button disabled={!status || working || !values.length} onClick={() => command('scene', { id: scene.id })} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">Ажиллуулах</button></div>; })}</div></section>
+        <section className="rounded-2xl border bg-white p-6"><h3 className="font-bold text-slate-900">Нэг товчийн горим</h3><div className="mt-4 space-y-3">{settings?.scenes.map(scene => { const values = Object.values(scene.commands); return <div key={scene.id} className="flex flex-wrap items-center justify-between gap-3 rounded-xl bg-slate-50 p-4"><div><p className="font-semibold text-slate-900">{scene.name}</p><p className="mt-1 text-xs text-slate-500">{values.length ? `${values.filter(v => v === 1).length} асаах · ${values.filter(v => v === 0).length} унтраах` : 'Засах хэсгээс реле сонгоно уу'}</p></div><button disabled={!status || working || !values.length} onClick={() => command('scene', { id: scene.id })} className="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-white disabled:opacity-40">Ажиллуулах</button></div>; })}</div></section>
         <section className="rounded-2xl border bg-white p-6"><h3 className="flex items-center gap-2 font-bold text-slate-900"><Clock className="h-4 w-4" />Цагийн хуваарь</h3><p className="mt-3 text-xs leading-5 text-slate-500">Хуваарийг СӨХ-ийн PC дээрх локал аппд засна. PC сервер ажиллаж байх үед PC-ийн цагаар үйлчилнэ.</p><div className="mt-4 space-y-3">{settings?.schedules.map(s => <div key={s.id} className="rounded-xl bg-slate-50 p-4"><p className="font-semibold text-slate-900">{s.name} · {s.time}</p><p className="mt-1 text-xs text-slate-500">{s.days.map(d => dayNames[d]).join(', ')} · {s.enabled ? 'Идэвхтэй' : 'Идэвхгүй'}</p></div>)}</div></section>
       </div>
       <section className="rounded-2xl border bg-white p-6"><h3 className="font-bold text-slate-900">Оролтын төлөв</h3><div className="mt-4 grid grid-cols-5 gap-2 sm:grid-cols-8 lg:grid-cols-10">{Array.from({ length: 40 }, (_, i) => <div key={i} className={`rounded-lg p-2 text-center text-xs ${status?.inputs[i] ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-500'}`}><p>DI {i + 1}</p><p className="mt-1">{!status ? '—' : status.inputs[i] ? 'Идэвхтэй' : 'Идэвхгүй'}</p></div>)}</div></section>

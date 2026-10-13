@@ -34,7 +34,7 @@ class RemoteTests(unittest.TestCase):
 
     def request(self, path, data=None, token='t'*40):
         headers = {'Authorization': 'Bearer '+token, 'Content-Type': 'application/json'}
-        if data:
+        if data and 'requestId' in data:
             headers['X-A32-Command-ID'] = data['requestId']
         req = urllib.request.Request(f'http://127.0.0.1:{self.http.server_port}'+path, data=json.dumps(data).encode() if data else None, headers=headers)
         try:
@@ -65,6 +65,33 @@ class RemoteTests(unittest.TestCase):
     def test_invalid_command(self):
         data = {'relay': 33, 'state': 'ON', 'requestId': '22222222-2222-2222-2222-222222222222'}
         self.assertEqual(self.request('/relay', data)[0], 400)
+        self.assertEqual(self.calls, [])
+
+    def test_edit_settings_persists_without_controller_commands(self):
+        snapshot = self.request('/automation')[1]
+        settings = snapshot['settings']
+        settings['channels'][0]['name'] = 'Зочны өрөө'
+        settings['rooms'][0]['name'] = 'Нэгдүгээр давхар'
+        settings['scenes'][1]['commands'] = {'1': 1}
+        settings['schedules'][0]['enabled'] = True
+        body = {'settings': settings, 'revision': snapshot['revision']}
+        code, result = self.request('/settings', body)
+        self.assertEqual(code, 200)
+        saved = Store(self.path).data['settings']
+        self.assertEqual(saved['channels'][0]['name'], 'Зочны өрөө')
+        self.assertEqual(saved['scenes'][1]['commands'], {'1': 1})
+        self.assertFalse(saved['schedules'][0]['enabled'])
+        self.assertNotEqual(result['revision'], snapshot['revision'])
+        self.assertEqual(self.request('/settings', body)[0], 409)
+        self.assertEqual(self.calls, [])
+
+    def test_invalid_settings_and_unauthenticated_edit(self):
+        snapshot = self.request('/automation')[1]
+        body = {'settings': snapshot['settings'], 'revision': snapshot['revision']}
+        self.assertEqual(self.request('/settings', body, token='wrong')[0], 401)
+        body['settings']['channels'][0]['room'] = 'unknown'
+        self.assertEqual(self.request('/settings', body)[0], 400)
+        self.assertEqual(self.request('/automation')[1]['revision'], snapshot['revision'])
         self.assertEqual(self.calls, [])
 
 

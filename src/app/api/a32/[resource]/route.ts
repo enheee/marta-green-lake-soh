@@ -15,7 +15,7 @@ async function forward(request: NextRequest, resource: string, body?: Record<str
   try {
     const response = await fetch(`${config.url}/${resource}`, {
       method: body ? 'POST' : 'GET', cache: 'no-store', redirect: 'error',
-      headers: { Authorization: `Bearer ${config.token}`, ...(body ? { 'Content-Type': 'application/json', 'X-A32-Command-ID': String(body.requestId) } : {}) },
+      headers: { Authorization: `Bearer ${config.token}`, ...(body ? { 'Content-Type': 'application/json' } : {}), ...(body?.requestId ? { 'X-A32-Command-ID': String(body.requestId) } : {}) },
       body: body ? JSON.stringify(body) : undefined,
       signal: AbortSignal.timeout(body ? 25000 : 8000),
     });
@@ -25,6 +25,7 @@ async function forward(request: NextRequest, resource: string, body?: Record<str
     // The bridge only returns device data and command results, never credentials.
     return reply(result, response.status);
   } catch {
+    if (resource === 'settings') return reply({ error: 'Хадгалалтын хариу баталгаажаагүй. Засварыг хааж, шинэчилсэн тохиргоог шалгана уу.' }, 502);
     return reply({ error: body ? 'Командын үр дүн баталгаажаагүй. Самбарын төлөвийг шинэчилж шалгана уу; команд автоматаар дахин илгээгдэхгүй.' : 'СӨХ-ийн PC сервертэй холбогдохгүй байна. Тэжээл, сервер болон HTTPS холбоосыг шалгана уу.' }, 502);
   }
 }
@@ -39,7 +40,7 @@ export async function POST(request: NextRequest, { params }: Context) {
   if (!authenticated(request)) return reply({ error: 'Төхөөрөмжийн хэсэгт нэвтэрнэ үү.' }, 401);
   try {
     const text = await request.text();
-    if (text.length > 4096) return reply({ error: 'Хүсэлт хэт урт байна.' }, 413);
+    if (text.length > (params.resource === 'settings' ? 32768 : 4096)) return reply({ error: 'Хүсэлт хэт урт байна.' }, 413);
     const body = JSON.parse(text);
     if (!validCommand(params.resource, body)) return reply({ error: 'Реле эсвэл горимын команд буруу байна.' }, 400);
     return forward(request, params.resource, body);

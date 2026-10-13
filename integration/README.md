@@ -1,6 +1,6 @@
 # A32 Pro portal integration
 
-The admin menu includes `/admin/devices`: 32 relays, 40 inputs, rooms, scenes, schedule summary and command history. Names, scenes and schedules are edited in the existing local dashboard. Schedules run on the gateway PC and require it to remain on.
+The admin menu includes `/admin/devices`: 32 relays, 40 inputs, rooms, scenes, schedule summary and command history. Names, room assignments and scenes can be edited from the portal. Schedules are edited in the existing local dashboard. Portal saves never enable or change schedules, but edits to a scene apply when its existing active schedule next runs. Settings saves use a revision check so a stale editor cannot overwrite a newer local or portal edit. Schedules run on the gateway PC and require it to remain on.
 
 The portal's existing general admin PIN is only a client-side gate. Device access additionally requires a separate server-verified password. No device API access is granted by the general PIN. Sessions expire after 30 minutes. Login throttling is per server instance; use a shared rate limiter before a broad multi-instance rollout.
 

@@ -101,3 +101,20 @@ test('login attempt limit expires without a global unlimited Map', () => {
   assert.equal(auth.allowLogin('test-ip', 0), false);
   assert.equal(auth.allowLogin('test-ip', 16*60*1000), true);
 });
+
+test('settings edits require authentication, same origin and a revision', async () => {
+  const body = { settings: { rooms: [] }, revision: 'a'.repeat(64) };
+  const ctx = { params: { resource: 'settings' } };
+  assert.equal((await proxy.POST(request('settings', { method: 'POST', origin: 'http://localhost:3000', body }), ctx)).status, 401);
+  assert.equal((await proxy.POST(request('settings', { method: 'POST', origin: 'https://evil.example', cookie: auth.createSession(), body }), ctx)).status, 403);
+  assert.equal(bridge.validCommand('settings', { settings: {} }), false);
+  const original = global.fetch;
+  global.fetch = async (url, options) => {
+    assert.equal(url, 'http://127.0.0.1:8767/settings');
+    assert.equal(options.headers['X-A32-Command-ID'], undefined);
+    return Response.json({ ok: true, revision: 'b'.repeat(64) });
+  };
+  try {
+    assert.equal((await proxy.POST(request('settings', { method: 'POST', origin: 'http://localhost:3000', cookie: auth.createSession(), body }), ctx)).status, 200);
+  } finally { global.fetch = original; }
+});

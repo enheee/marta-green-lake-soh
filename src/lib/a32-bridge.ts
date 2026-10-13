@@ -10,6 +10,7 @@ export function bridgeConfig() {
 export function validCommand(resource: string, body: unknown): body is Record<string, unknown> {
   if (!body || typeof body !== 'object') return false;
   const data = body as Record<string, unknown>;
+  if (resource === 'settings') return typeof data.revision === 'string' && /^[a-f0-9]{64}$/.test(data.revision) && !!data.settings && typeof data.settings === 'object' && !Array.isArray(data.settings);
   if (typeof data.requestId !== 'string' || !/^[a-f0-9-]{36}$/i.test(data.requestId)) return false;
   if (resource === 'relay') return Number.isInteger(data.relay) && Number(data.relay) >= 1 && Number(data.relay) <= 32 && (data.state === 'ON' || data.state === 'OFF');
   if (resource === 'scene') return typeof data.id === 'string' && /^[A-Za-z0-9_-]{1,64}$/.test(data.id);
